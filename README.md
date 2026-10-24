@@ -5,6 +5,7 @@
   A verification layer <i>beneath</i> the blockchain that turns raw satellite imagery into
   unforgeable, retire-once carbon credits.<br>
   <sub>Team <b>Pyragrid</b> · IEEE ClimateChain Global Hackathon 2026 · UN COP31 / Paris Article 6.4</sub>
+  <p><a href="https://vercel.com/new/clone?repository-url=https://github.com/saitaflex/CarbonTruth"><img src="https://vercel.com/button" alt="Deploy with Vercel"></a></p>
 </div>
 
 ---
