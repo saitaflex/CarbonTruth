@@ -384,6 +384,14 @@
     nav.links a{font-size:1.6rem;padding:16px;color:var(--fg)}
     .navtoggle.open{position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 16px);z-index:140}
   }
+  /* Built-with: border-connected grid */
+  .stackgrid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);background:var(--surface-2)}
+  .stackcell{padding:22px 20px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .stackcell .k{font-family:var(--mono);font-size:.9rem;color:var(--fg);letter-spacing:-.01em;font-weight:500}
+  .stackcell .r{font-size:.8rem;color:var(--muted);margin-top:7px;line-height:1.5}
+  .stackcell .k em{color:var(--accent);font-style:normal}
+  @media (max-width:860px){ .stackgrid{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:480px){ .stackgrid{grid-template-columns:1fr} }
 </style>
 
 <script>try{if(!matchMedia('(prefers-reduced-motion:reduce)').matches && 'IntersectionObserver' in window)document.documentElement.classList.add('pm');}catch(e){}</script>
@@ -598,6 +606,22 @@
     <div class="ref"><span class="mark">[2]</span><div><p><b>Tang, F. et al. (2025).</b> Carbon integrity of REDD+ projects. <i>Science.</i> — 19% of 52 projects met their emission-reduction targets.</p><div class="doi"><a href="https://doi.org/10.1126/science.adw4094" target="_blank" rel="noopener">doi:10.1126/science.adw4094 ↗</a></div></div></div>
     <div class="ref"><span class="mark">[3]</span><div><p><b>Chave, J. et al. (2014).</b> Improved pantropical allometric models to estimate aboveground biomass. <i>Global Change Biology.</i> — The AGB equation in stage 2.</p><div class="doi"><a href="https://doi.org/10.1111/gcb.12629" target="_blank" rel="noopener">doi:10.1111/gcb.12629 ↗</a></div></div></div>
     <div class="ref"><span class="mark">[4]</span><div><p><b>Data sources.</b> Sentinel-2 L2A via Microsoft Planetary Computer (open STAC, no key); NASA GEDI spaceborne lidar; Landsat archive. IPCC carbon fraction CF = 0.47.</p><div class="doi">planetarycomputer.microsoft.com · earthdata.nasa.gov/sensors/gedi</div></div></div>
+  </div>
+</div></section>
+
+<section id="builtwith"><div class="wrap">
+  <div class="sec-head"><span class="eyebrow">Built with</span>
+    <h2>Open data, real cryptography, shipped</h2>
+    <p>No black boxes — every layer is something a reviewer can inspect, re-run, or verify for themselves.</p></div>
+  <div class="stackgrid">
+    <div class="stackcell"><div class="k">Python <em>stdlib</em></div><div class="r">The verification engine — zero dependencies, runs with <span class="mono">python&nbsp;app.py</span>.</div></div>
+    <div class="stackcell"><div class="k">Sentinel-2</div><div class="r">Optical imagery via Microsoft Planetary Computer (open STAC, no key).</div></div>
+    <div class="stackcell"><div class="k">NASA GEDI + Landsat</div><div class="r">Independent lidar & archive oracles for multi-source consensus.</div></div>
+    <div class="stackcell"><div class="k">SHA-256</div><div class="r">Hash-chained, tamper-evident ledger with geo-temporal fingerprints.</div></div>
+    <div class="stackcell"><div class="k">Solidity <em>EVM</em></div><div class="r">On-chain contract enforcing uniqueness + retire-once (<span class="mono">CarbonTruthVCC.sol</span>).</div></div>
+    <div class="stackcell"><div class="k">Vercel</div><div class="r">Static hosting + the live <span class="mono">/api/stac</span> serverless function.</div></div>
+    <div class="stackcell"><div class="k">Blender <em>Cycles</em></div><div class="r">Path-traced 3D intro, rendered on-GPU from a procedural script.</div></div>
+    <div class="stackcell"><div class="k">IPCC + Chave 2014</div><div class="r">Peer-reviewed carbon accounting & allometry — transparent, cited.</div></div>
   </div>
 </div></section>
 
