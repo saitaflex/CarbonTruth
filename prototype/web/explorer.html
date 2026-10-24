@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CarbonTruth Explorer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#060a11;--bg2:#0a111c;--surface:#0e1826;--surface2:#111f32;
+    --line:rgba(150,180,215,.12);--line2:rgba(150,180,215,.22);
+    --fg:#e9eff8;--muted:#93a6bd;--faint:#5f7187;
+    --green:#34d06a;--green-b:#63ec92;--cyan:#33d9d0;--blue:#3b8cff;--red:#ff5b52;--amber:#ffba49;
+    --display:'Syne','Trebuchet MS',sans-serif;--body:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(1100px 600px at 85% -10%,rgba(52,208,106,.09),transparent 60%),
+      radial-gradient(900px 600px at 5% 110%,rgba(59,140,255,.08),transparent 60%),var(--bg);
+    color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+  a{color:var(--cyan)}
+  .wrap{max-width:1120px;margin:0 auto;padding:22px max(16px,env(safe-area-inset-left)) 80px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--display);font-weight:800;font-size:20px}
+  .brand .ct{color:var(--cyan)} .brand small{display:block;font-family:var(--mono);font-weight:400;font-size:10.5px;color:var(--faint);letter-spacing:.12em;text-transform:uppercase}
+  .mk{width:30px;height:30px}
+  .badge{font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid var(--line2);display:inline-flex;gap:8px;align-items:center}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green)}
+  .badge.bad .dot{background:var(--red);box-shadow:0 0 9px var(--red)}
+
+  h2{font-family:var(--display);font-weight:800;font-size:18px;margin:26px 0 12px;letter-spacing:-.01em}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--green-b)}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:16px}
+  .stat{border:1px solid var(--line);border-radius:13px;padding:13px 15px;background:var(--surface)}
+  .stat .n{font-family:var(--display);font-weight:800;font-size:25px}
+  .stat .l{font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-top:2px}
+
+  .panel{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,var(--surface),var(--bg2));padding:18px;margin-top:14px}
+  .runbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button{font-family:var(--mono);font-size:13px;cursor:pointer;border-radius:10px;padding:10px 16px;border:1px solid var(--line2);background:transparent;color:var(--fg);transition:.18s}
+  button:hover{border-color:var(--green);background:rgba(52,208,106,.12)}
+  button.primary{border-color:var(--green);background:rgba(52,208,106,.16);color:var(--green-b)}
+  button.danger:hover{border-color:var(--red);background:rgba(255,91,82,.12)}
+  button:disabled{opacity:.5;cursor:default}
+  .plotline{font-family:var(--mono);font-size:12px;color:var(--muted);margin:2px 0 14px}
+  .plotline b{color:var(--cyan)}
+
+  .result{display:none;margin-top:16px}
+  .result.show{display:block;animation:rise .4s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .cols{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+  @media(max-width:760px){.cols{grid-template-columns:1fr}}
+
+  .scenes{display:flex;gap:14px;flex-wrap:wrap}
+  .scene{flex:1;min-width:150px}
+  .scene .cap{font-family:var(--mono);font-size:11px;color:var(--faint);display:flex;justify-content:space-between;margin-bottom:6px}
+  .ndvi{display:grid;grid-template-columns:repeat(16,1fr);gap:1px;border-radius:8px;overflow:hidden;aspect-ratio:1}
+  .ndvi i{display:block}
+  .legend{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:6px;display:flex;align-items:center;gap:6px}
+  .lgrad{height:7px;flex:1;border-radius:4px;background:linear-gradient(90deg,hsl(25 55% 30%),hsl(78 55% 38%),hsl(130 60% 45%))}
+
+  .kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .kv:last-child{border-bottom:0}
+  .kv .k{color:var(--muted);font-family:var(--mono);font-size:12px}
+  .kv .v{font-variant-numeric:tabular-nums;font-weight:600}
+
+  .oracles{display:flex;flex-direction:column;gap:8px;margin:4px 0 12px}
+  .orow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:9px;padding:9px 12px;background:rgba(255,255,255,.015)}
+  .orow .nm{color:var(--fg)} .orow .nm small{color:var(--faint)}
+  .orow .es{color:var(--cyan);font-variant-numeric:tabular-nums}
+
+  .gauge{display:flex;align-items:center;gap:16px;margin:10px 0}
+  .gauge svg{transform:rotate(-90deg);flex:0 0 auto}
+  .gauge .gm{font-family:var(--display);font-weight:800;font-size:30px}
+  .gauge .gl{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.06em}
+
+  .verdict{border-radius:12px;padding:14px 16px;font-family:var(--mono);font-size:13px;margin-top:6px}
+  .verdict.ok{border:1px solid var(--green);background:rgba(52,208,106,.08)}
+  .verdict.no{border:1px solid var(--red);background:rgba(255,91,82,.08)}
+  .verdict .vt{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:.02em}
+  .verdict.ok .vt{color:var(--green-b)} .verdict.no .vt{color:var(--red)}
+  .receipt{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7;word-break:break-all}
+  .receipt b{color:var(--green-b)}
+
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line2)}
+  td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+  td.mono{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .pill{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line2)}
+  .pill.active{color:var(--green-b);border-color:var(--green)}
+  .pill.retired{color:var(--faint)}
+  .empty{color:var(--faint);font-family:var(--mono);font-size:13px;padding:22px;text-align:center;border:1px dashed var(--line2);border-radius:12px;margin-top:10px}
+  .foot{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:26px;line-height:1.7}
+  .live{margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .live .chip{display:inline-block;border:1px solid var(--line);border-radius:7px;padding:4px 9px;margin:4px 6px 0 0;color:var(--muted)}
+  .live .chip b{color:var(--cyan);font-weight:500}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line2);border-radius:10px;padding:11px 18px;font-family:var(--mono);font-size:13px;opacity:0;transition:.3s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg class="mk" viewBox="0 0 24 24" fill="none"><path d="M12 2 L20 5 V11 C20 16 16.5 20 12 22 C7.5 20 4 16 4 11 V5 Z" fill="#0f2740" stroke="#34d06a" stroke-width="1.3"/><circle cx="12" cy="10.5" r="4" fill="#34d06a" opacity=".85"/><rect x="9.4" y="12.4" width="5.2" height="4.2" rx="1" fill="#0b1726" stroke="#63ec92" stroke-width="1"/></svg>
+      <div>Carbon<span class="ct">Truth</span><small>Pyragrid · VCC registry</small></div>
+    </div>
+    <div class="badge" id="chainBadge"><span class="dot"></span><span id="chainTxt">checking chain…</span></div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <h2><span class="eyebrow">Verify &amp; mint</span><br>Run a verification</h2>
+  <div class="panel">
+    <div class="plotline" id="plotline">loading plot…</div>
+    <div class="runbar">
+      <button class="primary" id="runHonest">▶ Verify honest claim</button>
+      <button id="runInflated">▶ Verify inflated claim (over-credit)</button>
+      <span style="font-family:var(--mono);font-size:11.5px;color:var(--faint)">satellite → model → oracle → ledger</span>
+    </div>
+    <div class="live" id="live"></div>
+
+    <div class="result" id="result">
+      <div class="cols">
+        <div>
+          <div class="eyebrow" style="margin-bottom:8px">① Observe · Sentinel-2 NDVI</div>
+          <div class="scenes">
+            <div class="scene"><div class="cap"><span>BEFORE</span><span id="bDate"></span></div><div class="ndvi" id="ndviB"></div></div>
+            <div class="scene"><div class="cap"><span>AFTER</span><span id="aDate"></span></div><div class="ndvi" id="ndviA"></div></div>
+          </div>
+          <div class="legend"><span>degraded</span><span class="lgrad"></span><span>canopy</span></div>
+          <div class="eyebrow" style="margin:16px 0 6px">② Model · biomass → CO₂e</div>
+          <div id="modelKv"></div>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:8px">③ Oracle · independent consensus</div>
+          <div class="oracles" id="oracles"></div>
+          <div class="gauge">
+            <svg width="104" height="104" viewBox="0 0 104 104">
+              <circle cx="52" cy="52" r="44" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="9"/>
+              <circle id="garc" cx="52" cy="52" r="44" fill="none" stroke="url(#gg)" stroke-width="9" stroke-linecap="round" stroke-dasharray="276.5" stroke-dashoffset="276.5"/>
+              <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d06a"/><stop offset="1" stop-color="#33d9d0"/></linearGradient></defs>
+            </svg>
+            <div><div class="gm" id="gm">0%</div><div class="gl">confidence · θ ≥ 90%</div></div>
+          </div>
+          <div class="verdict" id="verdict"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2><span class="eyebrow">On-chain</span><br>Verified Climate Claims</h2>
+  <div id="registry"></div>
+
+  <div class="foot">
+    Pipeline is real: NDVI from Sentinel-2 band math, inverse-variance oracle fusion, SHA-256 hash-chained ledger that mirrors <b>contracts/CarbonTruthVCC.sol</b>.
+    Satellite pixels are a bundled sample scene (live STAC path in <b>ct/satellite.py</b>); figures are a prototype estimator, not audited credits.
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), api=(u,o)=>fetch(u,o).then(r=>r.json());
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+function ndviColor(v){const t=Math.max(0,Math.min(1,v/0.85));const h=25+t*105,l=24+t*26;return `hsl(${h} 58% ${l}%)`;}
+function drawNdvi(el,grid){el.innerHTML='';for(const row of grid)for(const v of row){const i=document.createElement('i');i.style.background=ndviColor(v);el.appendChild(i);}}
+function kv(k,v){return `<div class="kv"><span class="k">${k}</span><span class="v">${v}</span></div>`;}
+
+async function loadMeta(){
+  const m=await api('/api/meta');
+  $('#plotline').innerHTML=`Plot <b>${m.plot.project_id}</b> · ${m.plot.name} · ${m.plot.hectares} ha · geohash ${m.plot.geohash}`;
+}
+async function loadChain(){
+  const c=await api('/api/chain');const b=$('#chainBadge');
+  b.classList.toggle('bad',!c.intact);
+  $('#chainTxt').textContent=(c.intact?'chain intact':'TAMPERED')+` · ${c.blocks} blocks`;
+}
+async function loadRegistry(){
+  const d=await api('/api/credits');const s=d.stats;
+  $('#stats').innerHTML=[
+    ['n',s.total,'VCCs minted'],['n',s.active,'active'],['n',s.retired,'retired'],
+    ['n',s.tonnes_active.toLocaleString(),'tCO₂e active'],['n',s.blocks,'chain blocks']
+  ].map(x=>`<div class="stat"><div class="n">${x[1]}</div><div class="l">${x[2]}</div></div>`).join('');
+  const reg=$('#registry');
+  if(!d.credits.length){reg.innerHTML='<div class="empty">No claims verified yet — run a verification above.</div>';return;}
+  reg.innerHTML=`<table><thead><tr><th>VCC</th><th>tCO₂e</th><th>conf.</th><th>status</th><th>fingerprint</th><th>date</th><th></th></tr></thead><tbody>${
+    d.credits.map(c=>`<tr>
+      <td class="mono">${c.vcc_id}</td>
+      <td style="font-variant-numeric:tabular-nums">${c.tonnes.toLocaleString()}</td>
+      <td style="color:var(--green-b)">${c.confidence}%</td>
+      <td><span class="pill ${c.status}">${c.status}</span></td>
+      <td class="mono" title="${c.fingerprint}">${c.fingerprint.slice(0,12)}…</td>
+      <td class="mono">${c.date}</td>
+      <td>${c.status==='active'?`<button class="danger" data-fp="${c.fingerprint}" style="padding:6px 11px">retire</button>`:''}</td>
+    </tr>`).join('')}</tbody></table>`;
+  reg.querySelectorAll('button[data-fp]').forEach(b=>b.onclick=async()=>{
+    const r=await api('/api/retire',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fingerprint:b.dataset.fp})});
+    toast(r.ok?'Credit retired — can never be re-activated':('Retire failed: '+r.error));loadRegistry();loadChain();
+  });
+}
+function setGauge(pct){
+  const C=276.5,arc=$('#garc'),gm=$('#gm');let s=0;const to=pct;const t0=performance.now();
+  (function step(t){const p=Math.min(1,(t-t0)/800),e=1-Math.pow(1-p,3);
+    arc.style.strokeDashoffset=C*(1-(to*e)/100);gm.textContent=(to*e).toFixed(1)+'%';
+    gm.style.color=to>=90?'var(--green-b)':'var(--red)';
+    if(p<1)requestAnimationFrame(step);})(t0);
+}
+async function run(scenario,btn){
+  document.querySelectorAll('.runbar button').forEach(b=>b.disabled=true);btn.textContent='⏳ verifying…';
+  try{
+    const r=await api('/api/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario})});
+    $('#result').classList.add('show');
+    $('#bDate').textContent=r.scenes.before.date;$('#aDate').textContent=r.scenes.after.date;
+    drawNdvi($('#ndviB'),r.scenes.before.ndvi);drawNdvi($('#ndviA'),r.scenes.after.ndvi);
+    const m=r.model;
+    $('#modelKv').innerHTML=kv('project Δ','+'+m.project_delta_t_ha+' tCO₂e/ha')+kv('baseline (counterfactual)',m.baseline_delta_t_ha+' tCO₂e/ha')
+      +kv('additional',' '+m.additional_t_ha+' tCO₂e/ha')+kv('plot area',m.hectares+' ha')
+      +kv('additional (claim basis)','<span style="color:var(--cyan)">'+m.additional_tco2e.toLocaleString()+' tCO₂e</span>');
+    const o=r.oracle;
+    $('#oracles').innerHTML=o.estimates.map(e=>`<div class="orow"><span class="nm">${e.name.replace(/_/g,' ')}<br><small>σ ${e.sigma}</small></span><span class="es">${e.estimate.toLocaleString()} t</span></div>`).join('')
+      +`<div class="orow" style="border-color:var(--line2)"><span class="nm">fused μ (inverse-variance)<br><small>claim ${o.claim_tco2e.toLocaleString()} t · agree ${o.k_of_n}</small></span><span class="es" style="color:var(--green-b)">${o.mu.toLocaleString()} t</span></div>`;
+    setGauge(o.confidence);
+    const v=$('#verdict');v.className='verdict '+(o.passed?'ok':'no');
+    if(o.passed && r.mint && r.mint.ok){
+      const b=r.mint.block;
+      v.innerHTML=`<div class="vt">✓ MINTED — Verified Climate Claim</div>${o.reason}
+        <div class="receipt"><b>${b.vcc_id}</b> · ${b.tonnes.toLocaleString()} tCO₂e · ${b.confidence}% confidence
+        <br>fingerprint <b>${b.fingerprint}</b>
+        <br>evidence hash ${b.evidence_hash.slice(0,32)}…</div>`;
+      toast('VCC minted — verified once, trusted everywhere');
+    }else if(o.passed && r.mint && !r.mint.ok){
+      v.className='verdict no';
+      v.innerHTML=`<div class="vt">⛔ DOUBLE-COUNT BLOCKED</div>${r.mint.error}
+        <div class="receipt">This plot+date already has a VCC (fingerprint ${r.mint.fingerprint.slice(0,16)}…). One token per fingerprint — the tonne cannot be counted twice.</div>`;
+      toast('Blocked: fingerprint already minted');
+    }else{
+      v.innerHTML=`<div class="vt">✗ REJECTED — over-credit</div>${o.reason}
+        <div class="receipt">Claim ${o.claim_tco2e.toLocaleString()} t vs independent μ ${o.mu.toLocaleString()} t → confidence ${o.confidence}% below θ 90%. No credit minted.</div>`;
+      toast('Claim rejected — below confidence gate');
+    }
+    loadRegistry();loadChain();
+  }catch(e){toast('Error: '+e.message);}
+  document.querySelectorAll('.runbar button').forEach(b=>b.disabled=false);
+  $('#runHonest').textContent='▶ Verify honest claim';$('#runInflated').textContent='▶ Verify inflated claim (over-credit)';
+}
+$('#runHonest').onclick=e=>run('honest',e.target);
+$('#runInflated').onclick=e=>run('inflated',e.target);
+async function loadLive(){
+  const el=$('#live');el.innerHTML='◦ querying live Sentinel-2 scenes…';
+  try{
+    const d=await api('/api/stac');
+    if(!d.scenes.length){el.innerHTML='◦ offline — pipeline running on the bundled sample scene (live Sentinel-2 path in ct/satellite.py).';return;}
+    el.innerHTML='◦ live Sentinel-2 L2A over this plot <span style="color:var(--faint)">(Microsoft Planetary Computer, no key)</span>:<br>'
+      +d.scenes.map(s=>`<span class="chip"><b>${s.id.slice(0,24)}…</b> · ${s.datetime.slice(0,10)} · ${Math.round(s.cloud)}% cloud</span>`).join('');
+  }catch(e){el.innerHTML='◦ live scene lookup unavailable — using bundled sample scene.';}
+}
+loadMeta();loadChain();loadRegistry();loadLive();
+</script>
+</body>
+</html>

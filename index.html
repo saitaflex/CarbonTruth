@@ -1,0 +1,776 @@
+<title>CarbonTruth</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  :root{
+    --bg:#0b100e; --surface:#121a16; --surface-2:#0e1512; --raised:#16211b;
+    --border:#20302a; --border-2:#2b4036;
+    --fg:#e9f0ea; --fg-dim:#c3d2c8; --muted:#8ea79a; --faint:#5e7268;
+    --accent:#34d399; --accent-ink:#064e3b; --accent-soft:#0f2b22;
+    --good:#34d399; --bad:#fb7185; --warn:#fbbf24; --gate:#60a5fa; --buy:#a78bfa;
+    --shadow:0 18px 50px -24px rgba(0,0,0,.8);
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --disp:'Syne','IBM Plex Sans',system-ui,sans-serif;
+    color-scheme:dark;
+  }
+  @media (prefers-color-scheme:light){ :root:not([data-theme="dark"]){
+    --bg:#f3f7f4; --surface:#ffffff; --surface-2:#eef4f0; --raised:#ffffff;
+    --border:#dde7e1; --border-2:#c7d6cd;
+    --fg:#0c1813; --fg-dim:#243a30; --muted:#51685c; --faint:#82968c;
+    --accent:#0f9d6b; --accent-ink:#e6f6ef; --accent-soft:#e6f6ef;
+    --good:#0f9d6b; --bad:#e11d48; --warn:#b45309; --gate:#2563eb; --buy:#7c3aed;
+    --shadow:0 18px 50px -28px rgba(13,40,28,.28);
+    color-scheme:light;
+  }}
+  :root[data-theme="light"]{
+    --bg:#f3f7f4; --surface:#ffffff; --surface-2:#eef4f0; --raised:#ffffff;
+    --border:#dde7e1; --border-2:#c7d6cd;
+    --fg:#0c1813; --fg-dim:#243a30; --muted:#51685c; --faint:#82968c;
+    --accent:#0f9d6b; --accent-ink:#e6f6ef; --accent-soft:#e6f6ef;
+    --good:#0f9d6b; --bad:#e11d48; --warn:#b45309; --gate:#2563eb; --buy:#7c3aed;
+    --shadow:0 18px 50px -28px rgba(13,40,28,.28);
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:60}
+  a{color:inherit}
+  h1,h2,h3{font-family:var(--disp);font-weight:800;line-height:1.08;text-wrap:balance;letter-spacing:-.02em;margin:0}
+  p{margin:0}
+  .wrap{width:100%;max-width:1140px;margin-inline:auto;
+    padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:500}
+  .muted{color:var(--muted)} .mono{font-family:var(--mono)}
+
+  #intro{position:fixed;inset:0;z-index:200;display:grid;place-items:center;
+    background:radial-gradient(900px 600px at 70% 12%,color-mix(in srgb,var(--accent) 13%,transparent),transparent 60%),var(--bg);transition:opacity .75s ease}
+  #intro.gone{opacity:0;pointer-events:none}
+  #introCanvas{width:min(92vw,620px);height:auto;display:block}
+  #introCap{position:absolute;left:0;right:0;bottom:15%;text-align:center;padding-inline:22px;font-family:var(--disp);
+    font-weight:800;letter-spacing:-.01em;color:var(--fg);font-size:clamp(1.15rem,3.3vw,1.85rem);opacity:0;transition:opacity .45s ease;text-wrap:balance}
+  #introCap.on{opacity:1}
+  #introSkip{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:20px;font-family:var(--mono);font-size:.76rem;
+    color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:8px 14px;border-radius:10px;cursor:pointer}
+  #introSkip:hover{color:var(--fg);border-color:var(--border-2)}
+
+  header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;backdrop-filter:blur(14px);
+    background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--border)}
+  .bar .wrap{display:flex;align-items:center;gap:18px;padding-block:12px}
+  .brand{display:flex;align-items:center;gap:12px;font-family:var(--disp);font-weight:800;font-size:1.12rem;letter-spacing:-.01em;text-decoration:none}
+  .brand img{width:40px;height:40px;object-fit:contain}
+  .brand b{color:var(--accent)}
+  nav.links{margin-left:auto;display:flex;gap:4px}
+  nav.links a{font-size:.9rem;color:var(--muted);text-decoration:none;padding:7px 11px;border-radius:9px;transition:.15s}
+  nav.links a:hover{color:var(--fg);background:var(--surface)}
+  .tgl{border:1px solid var(--border);background:var(--surface);color:var(--fg);width:38px;height:38px;border-radius:10px;cursor:pointer;font-size:1rem;display:grid;place-items:center;transition:.15s}
+  .tgl:hover{border-color:var(--border-2)}
+  @media (max-width:760px){ nav.links{display:none} }
+
+  .hero{position:relative;padding-block:clamp(40px,7vw,84px) clamp(40px,6vw,72px);overflow:hidden}
+  .hero::after{content:"";position:absolute;inset:0;z-index:-1;
+    background:radial-gradient(760px 420px at 78% -8%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 60%),
+      radial-gradient(620px 420px at 6% 8%,color-mix(in srgb,var(--gate) 10%,transparent),transparent 55%)}
+  .hero .wrap{display:grid;grid-template-columns:1.12fr .88fr;gap:clamp(28px,5vw,56px);align-items:center}
+  .hero-logo{width:clamp(120px,19vw,184px);height:auto;margin-bottom:20px;filter:drop-shadow(0 12px 30px color-mix(in srgb,var(--accent) 32%,transparent))}
+  .tagpill{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:.74rem;letter-spacing:.04em;color:var(--fg-dim);
+    background:var(--surface);border:1px solid var(--border);padding:6px 13px;border-radius:999px;margin-bottom:20px}
+  .tagpill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 30%,transparent)}
+  .hero h1{font-size:clamp(2.4rem,6vw,4.1rem)}
+  .hero h1 .g{background:linear-gradient(100deg,var(--accent),var(--gate));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{color:var(--fg-dim);font-size:clamp(1.02rem,1.6vw,1.22rem);margin-top:20px;max-width:34em}
+  .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px;align-items:center}
+  .btn{font-family:var(--sans);font-weight:600;font-size:.95rem;cursor:pointer;border-radius:12px;padding:13px 20px;border:1px solid transparent;
+    text-decoration:none;display:inline-flex;align-items:center;gap:9px;transition:.16s;white-space:nowrap}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);box-shadow:0 10px 30px -12px color-mix(in srgb,var(--accent) 70%,transparent)}
+  .btn.primary:hover{transform:translateY(-2px)}
+  .btn.ghost{background:var(--surface);color:var(--fg);border-color:var(--border)}
+  .btn.ghost:hover{border-color:var(--border-2)}
+  .replay{font-family:var(--mono);font-size:.8rem;color:var(--muted);background:none;border:0;cursor:pointer;text-decoration:underline dotted;padding:6px}
+  .replay:hover{color:var(--accent)}
+  .trust{display:flex;gap:22px;margin-top:28px;flex-wrap:wrap}
+  .trust div{display:flex;flex-direction:column}.trust b{font-family:var(--disp);font-size:1.5rem}.trust span{font-size:.78rem;color:var(--muted)}
+  .cert{position:relative;background:linear-gradient(180deg,var(--raised),var(--surface-2));border:1px solid var(--border-2);border-radius:20px;padding:22px;box-shadow:var(--shadow);overflow:hidden}
+  .cert::before{content:"";position:absolute;left:-40%;top:-60%;width:80%;height:160%;
+    background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 22%,transparent),transparent);transform:rotate(16deg);animation:scan 5.5s ease-in-out infinite}
+  @keyframes scan{0%{left:-60%}55%,100%{left:120%}}
+  .cert .top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative}
+  .lockbadge{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--border))}
+  .lockbadge svg{width:22px;height:22px}
+  .cert .vcc{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+  .cert h3{font-size:1.15rem;margin-top:16px}
+  .cert .row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.78rem;padding:8px 0;border-bottom:1px dashed var(--border);gap:12px}
+  .cert .row:last-child{border-bottom:0}.cert .row .ok{color:var(--good);font-weight:600}
+  .stamp{position:absolute;right:16px;bottom:14px;font-family:var(--mono);font-weight:600;font-size:.7rem;letter-spacing:.14em;color:var(--good);
+    border:2px solid var(--good);padding:5px 9px;border-radius:7px;transform:rotate(-9deg);opacity:.9}
+
+  section{padding-block:clamp(48px,7vw,92px)}
+  .sec-head{max-width:42em;margin-bottom:34px}
+  .sec-head h2{font-size:clamp(1.7rem,3.6vw,2.6rem)}
+  .sec-head p{color:var(--fg-dim);margin-top:14px;font-size:1.05rem}
+  .band{background:var(--surface-2);border-block:1px solid var(--border)}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px}
+  .stat .big{font-family:var(--disp);font-weight:800;font-size:clamp(3rem,7vw,4.6rem);line-height:1;
+    background:linear-gradient(180deg,var(--bad),#f43f5e);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat h3{font-size:1.02rem;margin-top:12px}.stat p{color:var(--muted);font-size:.9rem;margin-top:8px}
+  .stat cite{display:block;font-family:var(--mono);font-size:.72rem;color:var(--faint);margin-top:12px;font-style:normal}
+  .cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px}
+  .card .n{font-family:var(--mono);font-size:.75rem;color:var(--accent);letter-spacing:.1em}
+  .card h3{font-size:1.12rem;margin-top:12px}.card p{color:var(--muted);font-size:.92rem;margin-top:10px}
+
+  /* ===== DEMO console ===== */
+  .demo-shell{background:var(--surface-2);border:1px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
+  .demo-top{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface)}
+  .dot3{display:flex;gap:6px}.dot3 i{width:11px;height:11px;border-radius:50%;background:var(--border-2)}
+  .demo-top .ttl{font-family:var(--mono);font-size:.82rem;color:var(--muted)}
+  .chip{margin-left:auto;font-family:var(--mono);font-size:.72rem;padding:5px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);display:flex;align-items:center;gap:7px}
+  .chip .led{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 28%,transparent)}
+
+  .plotpick{padding:16px 18px;border-bottom:1px solid var(--border);background:var(--surface)}
+  .plotpick .lab{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .plots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .plotcard{text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:13px;padding:13px 14px;cursor:pointer;transition:.15s}
+  .plotcard:hover{border-color:var(--border-2)}
+  .plotcard.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--surface-2))}
+  .plotcard .pid{font-family:var(--mono);font-size:.66rem;color:var(--accent)}
+  .plotcard .pn{font-weight:600;font-size:.86rem;margin-top:3px;line-height:1.3}
+  .plotcard .pm{font-family:var(--mono);font-size:.66rem;color:var(--muted);margin-top:5px}
+
+  .step-row{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);background:var(--surface)}
+  .step{padding:12px 14px;text-align:center;border-right:1px solid var(--border);font-family:var(--mono);font-size:.74rem;color:var(--faint);transition:.3s;position:relative}
+  .step:last-child{border-right:0}.step b{display:block;font-size:.64rem;letter-spacing:.14em}
+  .step.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,transparent)}
+  .step.done{color:var(--fg-dim)}
+  .step.on::after{content:"";position:absolute;left:0;bottom:-1px;height:2px;width:100%;background:var(--accent)}
+
+  .demo-body{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+  .pane{background:var(--surface-2);padding:20px;min-width:0}
+  .pane h4{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;font-weight:500;display:flex;justify-content:space-between;gap:8px}
+  .ndvi-wrap{display:flex;gap:16px;flex-wrap:wrap}
+  .ndvi-col{flex:1;min-width:120px}
+  .ndvi-col .cap{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.68rem;color:var(--muted);margin-bottom:6px}
+  .grid16{display:grid;grid-template-columns:repeat(16,1fr);gap:1px;border-radius:8px;overflow:hidden;aspect-ratio:1;border:1px solid var(--border)}
+  .grid16 i{display:block}
+  .livebox{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px 12px}
+  .livebox .lh{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+  .livebox .lh .led{width:7px;height:7px;border-radius:50%;background:var(--warn)}
+  .livebox.ok .lh .led{background:var(--good)}
+  .livebox ul{margin:8px 0 0;padding:0;list-style:none;font-family:var(--mono);font-size:.64rem;color:var(--fg-dim);line-height:1.7;word-break:break-all}
+  .model-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .mcell{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:12px}
+  .mcell .k{font-size:.72rem;color:var(--muted)}.mcell .v{font-family:var(--mono);font-size:1.1rem;font-weight:500;margin-top:3px}
+  .mcell .v.accent{color:var(--accent)}
+
+  .claimbox{background:var(--surface);border:1px solid var(--border-2);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+  .claimbox .ch{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .claimbox .ch .lab{font-size:.84rem;color:var(--fg-dim)}.claimbox .ch .val{font-family:var(--disp);font-weight:800;font-size:1.5rem}
+  .claimbox input[type=range]{width:100%;margin-top:14px;accent-color:var(--accent);height:6px;cursor:pointer}
+  .claimbox .hint{font-family:var(--mono);font-size:.7rem;color:var(--faint);margin-top:10px;line-height:1.5}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .preset{font-family:var(--mono);font-size:.72rem;cursor:pointer;background:var(--surface-2);border:1px solid var(--border);color:var(--fg-dim);padding:6px 11px;border-radius:999px;transition:.15s}
+  .preset:hover{border-color:var(--accent);color:var(--fg)}
+  .numline{position:relative;height:56px;margin:14px 2px 2px}
+  .numline .axis{position:absolute;left:0;right:0;top:28px;height:2px;background:var(--border)}
+  .numline .odot{position:absolute;top:22px;width:13px;height:13px;border-radius:50%;background:var(--gate);border:2px solid var(--surface);transform:translateX(-50%);transition:left .5s cubic-bezier(.2,.8,.2,1)}
+  .numline .mu{position:absolute;top:12px;width:3px;height:32px;background:var(--accent);transform:translateX(-50%);transition:left .5s}
+  .numline .mu::after{content:"μ";position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:.62rem;color:var(--accent)}
+  .numline .claimM{position:absolute;top:4px;width:3px;height:44px;background:var(--fg);transform:translateX(-50%);transition:left .12s linear}
+  .numline .claimM::after{content:"you";position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:.6rem;color:var(--fg-dim)}
+  .oracle{margin-bottom:12px}
+  .oracle .lab{display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:5px}
+  .oracle .lab b{font-weight:600}.oracle .lab .s{font-family:var(--mono);color:var(--muted);font-size:.72rem}
+  .obar{height:9px;border-radius:999px;background:var(--surface);overflow:hidden;border:1px solid var(--border)}
+  .obar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gate),var(--accent));border-radius:999px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+  .gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:14px}
+  .gauge{position:relative;width:100%;max-width:280px}
+  .gauge svg{width:100%;height:auto;display:block;overflow:visible}
+  .gauge .track{fill:none;stroke:var(--surface);stroke-width:20;stroke-linecap:round}
+  .gauge .val{fill:none;stroke:var(--accent);stroke-width:20;stroke-linecap:round;transition:stroke-dasharray .45s cubic-bezier(.2,.8,.2,1),stroke .45s}
+  .gauge .gate{stroke:var(--gate);stroke-width:3;stroke-dasharray:3 3}
+  .gauge .read{position:absolute;left:0;right:0;bottom:6%;text-align:center}
+  .gauge .read .pct{font-family:var(--disp);font-weight:800;font-size:2.4rem;line-height:1}
+  .gauge .read .sub{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+  .verdict{text-align:center;font-family:var(--mono);font-size:.82rem;padding:9px 12px;border-radius:10px;border:1px solid var(--border);color:var(--muted);line-height:1.5}
+  .verdict.pass{color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,var(--border));background:color-mix(in srgb,var(--good) 10%,transparent)}
+  .verdict.fail{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--border));background:color-mix(in srgb,var(--bad) 10%,transparent)}
+  .submit{width:100%;margin-top:14px;justify-content:center}
+  .submit:disabled{opacity:.5;cursor:progress}
+
+  /* sequence diagram */
+  .seq{margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 14px}
+  .seq .actors{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;position:relative}
+  .seq .rail{position:absolute;left:12%;right:12%;top:22px;height:2px;background:var(--border)}
+  .seq .pulse{position:absolute;top:18px;width:10px;height:10px;border-radius:50%;background:var(--accent);left:12%;opacity:0;
+    box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 30%,transparent);transition:left .5s cubic-bezier(.3,.9,.3,1),opacity .2s}
+  .seq .actor{text-align:center;z-index:1}
+  .seq .actor .node{width:40px;height:40px;border-radius:11px;margin:0 auto;display:grid;place-items:center;font-size:1.05rem;
+    background:var(--surface-2);border:1px solid var(--border);transition:.25s}
+  .seq .actor.lit .node{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--surface-2));transform:scale(1.08)}
+  .seq .actor .nm{font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:6px;line-height:1.3}
+  .seq .log{margin-top:14px;font-family:var(--mono);font-size:.72rem;display:flex;flex-direction:column;gap:5px}
+  .seq .log .ln{display:flex;gap:9px;align-items:baseline;color:var(--fg-dim);opacity:0;transform:translateX(-6px);transition:.3s}
+  .seq .log .ln.on{opacity:1;transform:none}
+  .seq .log .ln .ar{color:var(--accent)}.seq .log .ln.bad .ar{color:var(--bad)}.seq .log .ln.bad{color:var(--bad)}
+
+  .registry{padding:18px;border-top:1px solid var(--border);background:var(--surface)}
+  .registry .rtop{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  .rlabel{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .intact{font-family:var(--mono);font-size:.72rem;padding:5px 10px;border-radius:999px;display:flex;align-items:center;gap:7px;
+    border:1px solid color-mix(in srgb,var(--good) 40%,var(--border));color:var(--good);background:color-mix(in srgb,var(--good) 8%,transparent)}
+  .intact.broken{border-color:color-mix(in srgb,var(--bad) 50%,var(--border));color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+  .intact .led{width:8px;height:8px;border-radius:50%;background:currentColor}
+  .rstats{font-family:var(--mono);font-size:.74rem;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+  .rtools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .rtool{font-family:var(--mono);font-size:.68rem;cursor:pointer;background:transparent;border:1px solid var(--border);color:var(--fg-dim);padding:6px 12px;border-radius:8px}
+  .rtool:hover{border-color:var(--warn);color:var(--warn)}
+  .rtool.reset:hover{border-color:var(--accent);color:var(--accent)}
+  .tablescroll{overflow-x:auto}
+  table.reg{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.74rem;min-width:620px}
+  table.reg th{text-align:left;color:var(--muted);font-weight:500;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--border)}
+  table.reg td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+  .tag{font-size:.64rem;padding:3px 8px;border-radius:999px;border:1px solid var(--border)}
+  .tag.active{color:var(--good);border-color:color-mix(in srgb,var(--good) 40%,var(--border))}
+  .tag.retired{color:var(--muted)}
+  .tag.forged{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--border))}
+  .act{font-family:var(--mono);font-size:.66rem;cursor:pointer;background:transparent;border:1px solid var(--border);color:var(--fg-dim);padding:4px 9px;border-radius:7px;margin-right:5px;transition:.15s}
+  .act.xfer:hover{border-color:var(--buy);color:var(--buy)}
+  .act.ret:hover{border-color:var(--bad);color:var(--bad)}
+  .act.cert:hover{border-color:var(--accent);color:var(--accent)}
+  .reg-empty{color:var(--faint);font-family:var(--mono);font-size:.78rem;padding:18px 10px;text-align:center}
+  .toast{margin-top:12px;border-radius:12px;border:1px dashed var(--border-2);background:var(--surface);overflow:hidden;display:none}
+  .toast.show{display:block;animation:slidein .35s ease}
+  @keyframes slidein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .toast.ok{border-color:color-mix(in srgb,var(--good) 50%,var(--border))}
+  .toast.buy{border-color:color-mix(in srgb,var(--buy) 50%,var(--border))}
+  .toast.warn{border-color:color-mix(in srgb,var(--warn) 55%,var(--border))}
+  .toast.bad{border-color:color-mix(in srgb,var(--bad) 50%,var(--border))}
+  .toast .th{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--border);font-family:var(--disp);font-weight:700;font-size:.95rem}
+  .toast .th .ic{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-size:.85rem}
+  .toast.ok .th .ic{background:color-mix(in srgb,var(--good) 20%,transparent);color:var(--good);animation:pop .5s cubic-bezier(.2,1.5,.3,1)}
+  .toast.buy .th .ic{background:color-mix(in srgb,var(--buy) 20%,transparent);color:var(--buy)}
+  .toast.warn .th .ic{background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn)}
+  .toast.bad .th .ic{background:color-mix(in srgb,var(--bad) 20%,transparent);color:var(--bad)}
+  @keyframes pop{0%{transform:scale(.4);opacity:.3}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+  .toast .tr{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:.74rem;padding:6px 15px}
+  .toast .tr span:first-child{color:var(--muted)}.toast .tr span:last-child{text-align:right;word-break:break-all}
+
+  .pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .pstep{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px}
+  .pstep .num{font-family:var(--mono);font-size:.72rem;color:var(--accent);letter-spacing:.14em}
+  .pstep h3{font-size:1.08rem;margin-top:8px}.pstep p{color:var(--muted);font-size:.86rem;margin-top:8px}
+  .eq{font-family:var(--mono);font-size:.78rem;margin-top:14px;padding:11px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--fg-dim);overflow-x:auto;white-space:nowrap}
+  .eq b{color:var(--accent);font-weight:500}
+  .tracks{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .track{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:8px}
+  .track .ic{font-size:1.5rem}.track h3{font-size:1rem}.track p{color:var(--muted);font-size:.84rem}
+  .market{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+  .mk{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px}
+  .mk .big{font-family:var(--disp);font-weight:800;font-size:2rem;color:var(--accent)}.mk .k{font-size:.82rem;color:var(--fg-dim);margin-top:4px}
+  .mk cite{font-family:var(--mono);font-size:.68rem;color:var(--faint);font-style:normal;display:block;margin-top:8px}
+  .disclaim{font-family:var(--mono);font-size:.72rem;color:var(--faint);margin-top:16px;line-height:1.6}
+  .refs{display:flex;flex-direction:column;gap:12px}
+  .ref{display:flex;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+  .ref .mark{font-family:var(--mono);color:var(--accent);font-size:.8rem;white-space:nowrap}
+  .ref p{font-size:.9rem}.ref p b{font-weight:600}.ref .doi{font-family:var(--mono);font-size:.72rem;color:var(--faint);margin-top:4px}
+  footer{border-top:1px solid var(--border);background:var(--surface-2);padding-block:46px 40px}
+  .foot{display:grid;grid-template-columns:1.3fr 1fr;gap:34px;align-items:start}
+  .runbox{background:var(--bg);border:1px solid var(--border);border-radius:14px;font-family:var(--mono);font-size:.8rem;overflow:hidden}
+  .runbox .rh{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:.72rem;display:flex;gap:8px;align-items:center}
+  .runbox pre{margin:0;padding:14px;overflow-x:auto;color:var(--fg-dim);line-height:1.7}.runbox .c{color:var(--accent)}
+  .foot .end{display:flex;gap:11px;align-items:center;margin-top:10px}.foot .end img{width:52px;height:52px;object-fit:contain}
+  .foot small{color:var(--faint);display:block;margin-top:22px;font-family:var(--mono);font-size:.72rem}
+  @media (max-width:860px){.hero .wrap{grid-template-columns:1fr}.cards3,.pipe,.tracks,.market{grid-template-columns:1fr 1fr}
+    .demo-body{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.plots{grid-template-columns:1fr}}
+  @media (max-width:560px){.stats,.cards3,.pipe,.tracks,.market{grid-template-columns:1fr}
+    .step-row{grid-template-columns:repeat(2,1fr)}.step:nth-child(2){border-right:0}.trust{gap:16px}}
+  @media (prefers-reduced-motion:reduce){.cert::before{animation:none}*{transition-duration:.01ms!important}}
+</style>
+
+<div id="intro">
+  <canvas id="introCanvas" width="620" height="420" aria-hidden="true"></canvas>
+  <div id="introCap"></div>
+  <button id="introSkip">skip intro ✕</button>
+</div>
+
+<header class="bar"><div class="wrap">
+  <a class="brand" href="#top"><img src="logo.png" alt="CarbonTruth logo">Carbon<b>Truth</b></a>
+  <nav class="links"><a href="#problem">Problem</a><a href="#demo">Try it</a><a href="#how">How it works</a><a href="#why">Why it wins</a><a href="#evidence">Evidence</a></nav>
+  <button class="tgl" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">◐</button>
+</div></header>
+
+<a id="top"></a>
+<section class="hero"><div class="wrap">
+  <div>
+    <img class="hero-logo" src="logo.png" alt="CarbonTruth">
+    <span class="tagpill"><span class="dot"></span>Team Pyragrid · IEEE ClimateChain 2026</span>
+    <h1>Verify once.<br><span class="g">Trusted everywhere.</span></h1>
+    <p class="lede">CarbonTruth is the <b>SSL certificate for climate data</b> — a verification layer beneath the
+      blockchain that turns raw satellite imagery into unforgeable, retire-once carbon credits. Not another marketplace. The trust the market is missing.</p>
+    <div class="cta">
+      <a class="btn primary" href="#demo">▶ Run the whole lifecycle yourself</a>
+      <a class="btn ghost" href="#evidence">See the evidence</a>
+      <button class="replay" id="replayIntro">↺ replay intro</button>
+    </div>
+    <div class="trust"><div><b>3</b><span>independent oracles</span></div><div><b>4</b><span>tracks, one primitive</span></div><div><b>0</b><span>double-counts possible</span></div></div>
+  </div>
+  <div class="cert" aria-hidden="true">
+    <div class="top"><div class="lockbadge"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></div><span class="vcc">VCC · CT-REDD-0417</span></div>
+    <h3>Verified Climate Claim</h3>
+    <div class="row"><span>Net additional</span><span>4,096 tCO₂e</span></div>
+    <div class="row"><span>Confidence</span><span class="ok">99.3% ✓</span></div>
+    <div class="row"><span>Oracles agreeing</span><span>3 / 3</span></div>
+    <div class="row"><span>Fingerprint</span><span>CT-0x94b7c5b8…</span></div>
+    <div class="stamp">VERIFIED</div>
+  </div>
+</div></section>
+
+<section class="band" id="problem"><div class="wrap">
+  <div class="sec-head"><span class="eyebrow">The trillion-dollar trust gap</span>
+    <h2>The science is brutal on carbon markets</h2>
+    <p>Peer-reviewed studies keep finding the same thing: most credits don't represent real carbon. The data going onto the ledger was never trustworthy in the first place.</p></div>
+  <div class="stats">
+    <div class="stat"><div class="big">94%</div><h3>of forest-carbon credits were phantom</h3>
+      <p>A 2023 study in <i>Science</i> of 89 million credits found only ~6% backed by real, additional carbon. The other 94% are tonnes someone paid to remove — still in the air.</p>
+      <cite>West et al., Science 2023 · doi:10.1126/science.ade3535</cite></div>
+    <div class="stat"><div class="big">19%</div><h3>of REDD+ projects met their targets</h3>
+      <p>A 2025 <i>Science</i> analysis of 52 REDD+ projects found just 19% delivered the emission reductions they claimed. Verification, not ledgers, is the bottleneck.</p>
+      <cite>Tang et al., Science 2025 · doi:10.1126/science.adw4094</cite></div>
+  </div>
+</div></section>
+
+<section id="insight"><div class="wrap">
+  <div class="sec-head"><span class="eyebrow">Why everyone else is solving the wrong half</span>
+    <h2>A blockchain only proves a number didn't change — not that it was ever true</h2></div>
+  <div class="cards3">
+    <div class="card"><div class="n">01 · THE TRAP</div><h3>Blockchain makes bad data permanent</h3><p>Put an unverified credit on-chain and all you've done is make a bad number immutable and tradeable. Transparency about garbage is still garbage.</p></div>
+    <div class="card"><div class="n">02 · THE REAL GAP</div><h3>The oracle problem</h3><p>The hard part is getting a <i>trustworthy measurement</i> onto the chain in the first place. That's a verification problem, and it's where every registry fails.</p></div>
+    <div class="card"><div class="n">03 · THE FIX</div><h3>One primitive: the Verified Climate Claim</h3><p>AI-verified from independent open data, anchored with an evidence hash, made globally unique by a geo-temporal fingerprint. Verify once, trust everywhere.</p></div>
+  </div>
+</div></section>
+
+<section class="band" id="demo"><div class="wrap">
+  <div class="sec-head"><span class="eyebrow">Your turn — you are the actor, not the audience</span>
+    <h2>Run a carbon credit through its entire life</h2>
+    <p>Pick a real project, set the claim, submit it to the oracle network, mint it, sell it, retire it, and try to forge the ledger. Every step is a real action you take — the full use-case, running in your browser.</p></div>
+
+  <div class="demo-shell">
+    <div class="demo-top"><span class="dot3"><i></i><i></i><i></i></span><span class="ttl">carbontruth · you are the verifier</span><span class="chip"><span class="led"></span>pipeline live</span></div>
+
+    <div class="plotpick">
+      <div class="lab">① Pick a project to verify</div>
+      <div class="plots" id="plots"></div>
+    </div>
+
+    <div class="step-row" id="steps">
+      <div class="step done" data-s="0"><b>USE CASE</b>Submit claim</div>
+      <div class="step" data-s="1"><b>SEQUENCE</b>Oracles verify</div>
+      <div class="step" data-s="2"><b>SEQUENCE</b>Mint on chain</div>
+      <div class="step" data-s="3"><b>LIFECYCLE</b>Trade & retire</div>
+    </div>
+
+    <div class="demo-body">
+      <div class="pane">
+        <h4><span>② Observe — Sentinel-2 NDVI</span><span id="plotHa" class="mono" style="color:var(--faint)"></span></h4>
+        <div class="ndvi-wrap">
+          <div class="ndvi-col"><div class="cap"><span>before</span><span id="dBefore"></span></div><div class="grid16" id="gridBefore"></div></div>
+          <div class="ndvi-col"><div class="cap"><span>after</span><span id="dAfter"></span></div><div class="grid16" id="gridAfter"></div></div>
+        </div>
+        <div class="livebox" id="livebox">
+          <div class="lh"><span class="led"></span><span id="liveHead">Fetching live Sentinel-2 scenes…</span></div>
+          <ul id="liveList"></ul>
+        </div>
+        <h4 style="margin-top:20px"><span>③ Estimate — additional CO₂e</span></h4>
+        <div class="model-grid">
+          <div class="mcell"><div class="k">Carbon stock gained</div><div class="v" id="mDelta">—</div></div>
+          <div class="mcell"><div class="k">Counterfactual baseline</div><div class="v" id="mBase">—</div></div>
+          <div class="mcell"><div class="k">Plot area</div><div class="v" id="mArea">—</div></div>
+          <div class="mcell"><div class="k">Net additional</div><div class="v accent" id="mAdd">—</div></div>
+        </div>
+      </div>
+
+      <div class="pane">
+        <h4><span>④ Verify — set your claim, then submit</span></h4>
+        <div class="claimbox">
+          <div class="ch"><span class="lab">You are claiming</span><span class="val" id="claimVal">—</span></div>
+          <input type="range" id="claimSlider" min="50" max="9000" step="1" value="4123">
+          <div class="numline" id="numline"><div class="axis"></div><div class="mu" id="muMark"></div><div class="claimM" id="claimMark"></div></div>
+          <div class="hint" id="claimHint"></div>
+          <div class="presets" id="presets"></div>
+        </div>
+        <div id="oracles"></div>
+        <div class="gauge-wrap">
+          <div class="gauge"><svg viewBox="0 0 240 150">
+            <path class="track" d="M20,140 A100,100 0 0 1 220,140"></path>
+            <path class="val" id="gVal" d="M20,140 A100,100 0 0 1 220,140" pathLength="100" stroke-dasharray="0 100"></path>
+            <line class="gate" id="gGate" x1="0" y1="0" x2="0" y2="0"></line></svg>
+            <div class="read"><div class="pct" id="gPct">—</div><div class="sub">confidence · gate 90%</div></div></div>
+          <div class="verdict" id="verdict">Drag the slider, then submit for verification</div>
+        </div>
+        <button class="btn primary submit" id="bSubmit">📡 Submit claim to the oracle network</button>
+
+        <div class="seq">
+          <div class="actors" id="actors">
+            <div class="rail"></div><div class="pulse" id="pulse"></div>
+            <div class="actor" data-a="you"><div class="node">🧑‍🌾</div><div class="nm">You<br>Developer</div></div>
+            <div class="actor" data-a="oracle"><div class="node">🛰️</div><div class="nm">Oracle<br>Network</div></div>
+            <div class="actor" data-a="reg"><div class="node">📒</div><div class="nm">Registry</div></div>
+            <div class="actor" data-a="chain"><div class="node">⛓️</div><div class="nm">Blockchain</div></div>
+          </div>
+          <div class="log" id="seqlog"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="registry">
+      <div class="rtop">
+        <span class="rlabel">⑤ VCC Registry &amp; your holdings</span>
+        <span class="intact" id="intact"><span class="led"></span>chain intact · <span id="blocks">1</span> blocks</span>
+        <div class="rtools">
+          <button class="rtool" id="bTamper">⚒ Forge a block</button>
+          <button class="rtool reset" id="bReset">↺ Reset</button>
+        </div>
+      </div>
+      <div class="rtop" style="margin-bottom:8px"><span class="rstats" id="rstats"></span></div>
+      <div class="tablescroll"><table class="reg"><thead><tr><th>VCC ID</th><th>Project</th><th>tCO₂e</th><th>Owner</th><th>Status</th><th>Actions</th></tr></thead><tbody id="regBody"></tbody></table></div>
+      <div class="reg-empty" id="regEmpty">No credits yet — set an honest claim and submit it to mint the first VCC.</div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+  <p class="disclaim">Everything here is the real logic — band math, inverse-variance fusion, SHA-256 fingerprinting, the double-count
+    and retire-once invariants, chain verification, and ownership transfer — running live in your browser, with live Sentinel-2 scene
+    discovery through a serverless function. Satellite pixels are a bundled representative scene and the NDVI→biomass relation is a
+    transparent prototype estimator, not a field-calibrated model. The identical engine runs offline as pure Python — <span class="mono">python app.py</span>.</p>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <div class="sec-head"><span class="eyebrow">Satellite → model → oracle → ledger</span><h2>Four stages, every one auditable</h2></div>
+  <div class="pipe">
+    <div class="pstep"><div class="num">01 · OBSERVE</div><h3>Open satellite optics</h3><p>Sentinel-2 red & near-infrared bands over the plot, before and after. We query Microsoft's free Planetary Computer for live scene IDs — no API key.</p><div class="eq">NDVI = <b>(B08 − B04)</b> / (B08 + B04)</div></div>
+    <div class="pstep"><div class="num">02 · ESTIMATE</div><h3>Biomass → additional CO₂e</h3><p>NDVI maps to aboveground biomass, then to CO₂e. A counterfactual baseline means we only ever credit carbon that's genuinely <i>additional</i>.</p><div class="eq">AGB = 0.0673(<b>ρD²H</b>)<sup>0.976</sup> · E = AGB·0.47·<sup>44</sup>⁄<sub>12</sub></div></div>
+    <div class="pstep"><div class="num">03 · VERIFY</div><h3>Independent consensus</h3><p>Optical, GEDI lidar and Landsat archive are fused by inverse-variance weighting. Mint only if confidence clears the gate and k-of-n oracles agree.</p><div class="eq">μ = <b>Σwᵢmᵢ</b> / Σwᵢ , wᵢ = 1/σᵢ² · V = 1 − |μ−c|/c ≥ <b>θ</b></div></div>
+    <div class="pstep"><div class="num">04 · MINT</div><h3>Fingerprinted & chained</h3><p>A geo-temporal fingerprint makes each tonne globally unique — one token per fingerprint, so double-counting can't be expressed. Retire-once, forever.</p><div class="eq">f = <b>H</b>(geohash‖date‖projectID‖k) · R ∩ A = ∅</div></div>
+  </div>
+</div></section>
+
+<section class="band" id="why"><div class="wrap">
+  <div class="sec-head"><span class="eyebrow">One primitive, every track</span><h2>Why this wins the hackathon</h2>
+    <p>Because CarbonTruth is a verification <i>layer</i>, not a marketplace, the same Verified Climate Claim works across all four ClimateChain tracks — and UN Article 6.4 now <i>mandates</i> exactly this kind of verification.</p></div>
+  <div class="tracks">
+    <div class="track"><div class="ic">🌳</div><h3>Carbon Markets</h3><p>Over-crediting caught before mint; every tonne backed by independent evidence.</p></div>
+    <div class="track"><div class="ic">⚡</div><h3>Renewable Energy</h3><p>The same receipt certifies clean-energy generation claims and RECs.</p></div>
+    <div class="track"><div class="ic">📦</div><h3>Supply Chains</h3><p>Verified emissions claims flow across Scope-3 boundaries without double-counting.</p></div>
+    <div class="track"><div class="ic">🛰️</div><h3>Climate Data</h3><p>Any sensor-backed environmental claim gets a portable, auditable trust stamp.</p></div>
+  </div>
+  <div class="market">
+    <div class="mk"><div class="big">$1.7B</div><div class="k">voluntary carbon market, 2024</div><cite>est. GMI</cite></div>
+    <div class="mk"><div class="big">$250B</div><div class="k">projected 2030 if integrity is restored</div><cite>Barclays projection</cite></div>
+    <div class="mk"><div class="big">$10–40B</div><div class="k">more conservative 2030 estimate</div><cite>MSCI projection</cite></div>
+  </div>
+  <p class="disclaim">Market figures are third-party projections shown for context, not revenue forecasts. CarbonTruth monetizes verification (≈ a dollar-fifty per credit at near-zero marginal cost), not the tonnes themselves.</p>
+</div></section>
+
+<section id="evidence"><div class="wrap">
+  <div class="sec-head"><span class="eyebrow">Built on the literature</span><h2>Evidence & methods</h2><p>Every claim on this page is traceable to peer-reviewed science or an open standard.</p></div>
+  <div class="refs">
+    <div class="ref"><span class="mark">[1]</span><div><p><b>West, T. et al. (2023).</b> Action needed to make carbon offsets from forest conservation work for climate change mitigation. <i>Science.</i> — Only ~6% of 89M credits backed by real carbon.</p><div class="doi">doi:10.1126/science.ade3535</div></div></div>
+    <div class="ref"><span class="mark">[2]</span><div><p><b>Tang, F. et al. (2025).</b> Carbon integrity of REDD+ projects. <i>Science.</i> — 19% of 52 projects met their emission-reduction targets.</p><div class="doi">doi:10.1126/science.adw4094</div></div></div>
+    <div class="ref"><span class="mark">[3]</span><div><p><b>Chave, J. et al. (2014).</b> Improved pantropical allometric models to estimate aboveground biomass. <i>Global Change Biology.</i> — The AGB equation in stage 2.</p><div class="doi">doi:10.1111/gcb.12629</div></div></div>
+    <div class="ref"><span class="mark">[4]</span><div><p><b>Data sources.</b> Sentinel-2 L2A via Microsoft Planetary Computer (open STAC, no key); NASA GEDI spaceborne lidar; Landsat archive. IPCC carbon fraction CF = 0.47.</p><div class="doi">planetarycomputer.microsoft.com · earthdata.nasa.gov/sensors/gedi</div></div></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap foot">
+  <div><span class="eyebrow">Run the real engine</span><h2 style="font-size:1.5rem;margin:10px 0 16px">Pure Python, no setup</h2>
+    <div class="runbox"><div class="rh"><span class="dot3"><i></i><i></i><i></i></span> terminal</div>
+      <pre><span class="c">$</span> git clone https://github.com/&lt;you&gt;/carbontruth
+<span class="c">$</span> cd carbontruth/prototype && python app.py   <span style="color:var(--faint)"># → http://127.0.0.1:8017</span>
+<span class="c">$</span> python app.py --selftest   <span style="color:var(--faint)"># honest ✓ · duplicate ✗ · inflated ✗</span></pre></div>
+    <p class="muted" style="font-size:.88rem;margin-top:14px">Zero dependencies — standard library only. Ships with a real EVM Solidity contract enforcing the same fingerprint-uniqueness and retire-once invariants on-chain.</p></div>
+  <div><span class="eyebrow">The team</span>
+    <div class="end"><img src="logo.png" alt="CarbonTruth"><div><div style="font-family:var(--disp);font-weight:800;font-size:1.3rem">Pyragrid</div><div class="muted" style="font-size:.85rem">building CarbonTruth</div></div></div>
+    <p class="muted" style="font-size:.9rem;margin-top:16px">“Every tonne — verified once, trusted everywhere.” Our entry for the IEEE ClimateChain Global Hackathon 2026, aligned to UN COP31 / Paris Article 6.4.</p>
+    <small>CarbonTruth · Team Pyragrid · 2026 — deployed on Vercel; verification runs in your browser, live satellite discovery via a serverless function.</small></div>
+</div></footer>
+
+<script>
+const PLOTS=[{"id":"CT-REDD-0417","name":"Rio Jari reforestation unit, Par\u00e1, Brazil","project_id":"CT-REDD-0417","geohash":"6rnuqg7","lat":-0.9167,"lon":-52.5,"hectares":118.0,"note":"Strong, genuine regrowth \u2014 the honest case.","before":{"date":"2023-01-15","id":"S2A_MSIL2A_20230115T131241_T22NBM","ndvi":[[0.808,0.816,0.834,0.828,0.827,0.787,0.823,0.803,0.794,0.78,0.818,0.793,0.845,0.781,0.788,0.835],[0.804,0.77,0.783,0.787,0.786,0.839,0.835,0.821,0.798,0.843,0.822,0.829,0.815,0.808,0.791,0.764],[0.794,0.785,0.777,0.812,0.782,0.793,0.771,0.771,0.812,0.783,0.778,0.794,0.802,0.807,0.792,0.821],[0.841,0.783,0.765,0.813,0.767,0.827,0.769,0.795,0.784,0.804,0.79,0.834,0.766,0.817,0.846,0.808],[0.835,0.822,0.782,0.849,0.793,0.749,0.707,0.656,0.67,0.663,0.714,0.805,0.774,0.814,0.82,0.805],[0.805,0.842,0.851,0.819,0.741,0.671,0.614,0.602,0.534,0.616,0.65,0.762,0.766,0.819,0.792,0.8],[0.805,0.809,0.824,0.8,0.633,0.557,0.493,0.413,0.464,0.479,0.592,0.695,0.717,0.782,0.803,0.782],[0.779,0.823,0.819,0.762,0.663,0.508,0.423,0.372,0.281,0.449,0.539,0.624,0.753,0.845,0.797,0.813],[0.787,0.768,0.817,0.714,0.637,0.498,0.296,0.13,0.218,0.351,0.507,0.637,0.763,0.851,0.774,0.825],[0.79,0.785,0.825,0.752,0.637,0.598,0.457,0.246,0.289,0.397,0.539,0.627,0.697,0.826,0.827,0.78],[0.815,0.823,0.772,0.746,0.66,0.596,0.555,0.407,0.365,0.49,0.59,0.706,0.798,0.827,0.799,0.817],[0.831,0.797,0.804,0.798,0.751,0.673,0.553,0.582,0.548,0.623,0.713,0.75,0.816,0.846,0.784,0.822],[0.849,0.802,0.779,0.778,0.796,0.714,0.751,0.659,0.709,0.645,0.686,0.804,0.807,0.839,0.839,0.815],[0.793,0.834,0.768,0.802,0.793,0.831,0.821,0.786,0.777,0.829,0.795,0.835,0.815,0.848,0.808,0.788],[0.773,0.785,0.774,0.806,0.824,0.803,0.81,0.823,0.811,0.806,0.824,0.796,0.785,0.815,0.763,0.778],[0.789,0.831,0.792,0.845,0.805,0.806,0.781,0.847,0.843,0.788,0.784,0.798,0.785,0.849,0.844,0.777]]},"after":{"date":"2024-08-20","id":"S2A_MSIL2A_20240820T131249_T22NBM","ndvi":[[0.767,0.838,0.777,0.803,0.828,0.799,0.796,0.801,0.793,0.802,0.766,0.79,0.824,0.848,0.815,0.805],[0.834,0.832,0.841,0.833,0.817,0.819,0.792,0.82,0.834,0.785,0.799,0.816,0.821,0.801,0.794,0.838],[0.816,0.772,0.816,0.823,0.776,0.803,0.782,0.806,0.806,0.779,0.818,0.782,0.831,0.789,0.81,0.825],[0.816,0.826,0.842,0.802,0.844,0.781,0.778,0.774,0.836,0.813,0.788,0.829,0.788,0.81,0.788,0.813],[0.792,0.792,0.788,0.794,0.817,0.826,0.751,0.752,0.782,0.73,0.827,0.833,0.769,0.788,0.806,0.799],[0.828,0.785,0.776,0.808,0.756,0.761,0.763,0.759,0.67,0.71,0.75,0.787,0.827,0.79,0.823,0.797],[0.841,0.78,0.788,0.75,0.719,0.766,0.685,0.675,0.706,0.746,0.743,0.742,0.756,0.778,0.83,0.81],[0.821,0.8,0.823,0.801,0.731,0.682,0.641,0.654,0.665,0.669,0.688,0.769,0.763,0.796,0.837,0.823],[0.783,0.836,0.823,0.798,0.76,0.698,0.662,0.622,0.629,0.689,0.681,0.715,0.73,0.799,0.786,0.818],[0.847,0.781,0.791,0.742,0.736,0.753,0.641,0.625,0.632,0.664,0.739,0.738,0.76,0.812,0.78,0.819],[0.815,0.826,0.793,0.818,0.742,0.766,0.739,0.687,0.674,0.686,0.72,0.743,0.773,0.833,0.821,0.806],[0.797,0.829,0.794,0.766,0.776,0.745,0.726,0.73,0.749,0.77,0.768,0.787,0.813,0.829,0.805,0.804],[0.766,0.821,0.803,0.773,0.795,0.811,0.794,0.76,0.721,0.758,0.76,0.768,0.798,0.806,0.799,0.805],[0.805,0.789,0.813,0.809,0.777,0.839,0.758,0.809,0.766,0.788,0.844,0.836,0.795,0.817,0.83,0.842],[0.776,0.789,0.793,0.806,0.833,0.818,0.837,0.772,0.773,0.796,0.787,0.837,0.81,0.844,0.768,0.779],[0.811,0.81,0.814,0.779,0.778,0.822,0.82,0.821,0.852,0.762,0.789,0.846,0.779,0.799,0.844,0.783]]},"model":{"project_delta":34.34,"baseline":-0.6,"additional_t_ha":34.94,"additional_tco2e":4122.9},"oracles":[{"name":"optical_sentinel2","estimate":4100.7,"sigma":247.4},{"name":"lidar_gedi","estimate":4070.0,"sigma":164.9},{"name":"archive_landsat","estimate":4217.2,"sigma":371.1}],"claimDefault":4123.0},{"id":"CT-REDD-0822","name":"Sebangau peatland restoration, Kalimantan, Indonesia","project_id":"CT-REDD-0822","geohash":"w0m8xk2","lat":-2.35,"lon":113.75,"hectares":72.0,"note":"Moderate recovery \u2014 a mid-size project.","before":{"date":"2023-02-20","id":"S2B_MSIL2A_20230220T025539_T49MFT","ndvi":[[0.844,0.837,0.789,0.817,0.833,0.822,0.835,0.828,0.797,0.82,0.774,0.817,0.781,0.821,0.827,0.785],[0.815,0.772,0.802,0.791,0.831,0.778,0.775,0.792,0.778,0.826,0.826,0.822,0.83,0.779,0.837,0.815],[0.809,0.82,0.769,0.823,0.808,0.797,0.784,0.789,0.762,0.781,0.845,0.819,0.794,0.807,0.827,0.814],[0.825,0.765,0.778,0.771,0.816,0.78,0.8,0.814,0.757,0.821,0.847,0.847,0.783,0.837,0.816,0.776],[0.836,0.817,0.786,0.829,0.803,0.718,0.658,0.676,0.627,0.684,0.739,0.797,0.813,0.838,0.797,0.789],[0.758,0.815,0.784,0.753,0.768,0.662,0.639,0.581,0.606,0.584,0.654,0.713,0.823,0.794,0.79,0.77],[0.825,0.805,0.839,0.764,0.714,0.608,0.521,0.453,0.424,0.5,0.607,0.66,0.758,0.782,0.796,0.846],[0.819,0.774,0.812,0.745,0.668,0.472,0.393,0.213,0.353,0.435,0.492,0.639,0.714,0.834,0.817,0.813],[0.838,0.795,0.776,0.687,0.62,0.49,0.396,0.198,0.262,0.421,0.475,0.578,0.696,0.829,0.786,0.833],[0.794,0.799,0.794,0.721,0.634,0.527,0.421,0.285,0.206,0.394,0.59,0.656,0.724,0.762,0.78,0.829],[0.82,0.818,0.813,0.752,0.673,0.549,0.523,0.459,0.455,0.509,0.614,0.7,0.71,0.83,0.807,0.783],[0.81,0.811,0.809,0.835,0.766,0.657,0.568,0.529,0.563,0.603,0.647,0.712,0.831,0.791,0.825,0.787],[0.807,0.811,0.818,0.811,0.793,0.719,0.752,0.687,0.626,0.671,0.753,0.824,0.805,0.803,0.822,0.808],[0.778,0.838,0.814,0.814,0.831,0.842,0.8,0.769,0.764,0.74,0.798,0.854,0.823,0.793,0.805,0.799],[0.801,0.778,0.779,0.756,0.776,0.828,0.84,0.833,0.78,0.774,0.759,0.81,0.822,0.797,0.82,0.79],[0.851,0.83,0.785,0.789,0.787,0.841,0.792,0.845,0.843,0.803,0.811,0.837,0.833,0.823,0.831,0.78]]},"after":{"date":"2024-07-11","id":"S2B_MSIL2A_20240711T025549_T49MFT","ndvi":[[0.822,0.827,0.817,0.822,0.8,0.817,0.84,0.797,0.807,0.762,0.799,0.821,0.802,0.782,0.822,0.834],[0.842,0.771,0.823,0.81,0.784,0.807,0.821,0.818,0.796,0.781,0.815,0.8,0.771,0.832,0.816,0.796],[0.806,0.795,0.797,0.792,0.762,0.818,0.798,0.771,0.845,0.845,0.82,0.798,0.836,0.773,0.817,0.805],[0.818,0.783,0.789,0.784,0.79,0.763,0.766,0.763,0.818,0.763,0.79,0.812,0.8,0.784,0.787,0.793],[0.762,0.758,0.786,0.842,0.792,0.748,0.705,0.746,0.683,0.726,0.745,0.784,0.828,0.805,0.806,0.803],[0.78,0.806,0.792,0.806,0.75,0.672,0.69,0.684,0.643,0.707,0.71,0.739,0.78,0.784,0.809,0.842],[0.83,0.768,0.806,0.746,0.721,0.637,0.595,0.649,0.646,0.634,0.67,0.691,0.749,0.791,0.793,0.811],[0.785,0.821,0.839,0.794,0.668,0.641,0.584,0.584,0.485,0.542,0.609,0.713,0.726,0.814,0.8,0.83],[0.815,0.771,0.775,0.759,0.73,0.592,0.485,0.411,0.426,0.521,0.673,0.683,0.742,0.821,0.824,0.82],[0.776,0.796,0.804,0.746,0.733,0.633,0.583,0.505,0.539,0.578,0.621,0.726,0.797,0.773,0.771,0.836],[0.845,0.826,0.812,0.808,0.695,0.644,0.612,0.576,0.54,0.65,0.634,0.736,0.753,0.783,0.809,0.78],[0.839,0.817,0.815,0.802,0.736,0.736,0.645,0.679,0.66,0.668,0.738,0.79,0.799,0.83,0.8,0.825],[0.794,0.842,0.785,0.843,0.801,0.809,0.757,0.724,0.697,0.744,0.769,0.785,0.819,0.798,0.777,0.821],[0.823,0.847,0.829,0.835,0.812,0.765,0.787,0.771,0.726,0.824,0.844,0.824,0.783,0.827,0.822,0.81],[0.781,0.783,0.825,0.802,0.791,0.844,0.776,0.798,0.846,0.813,0.787,0.832,0.822,0.807,0.803,0.836],[0.788,0.796,0.808,0.768,0.799,0.799,0.839,0.791,0.816,0.801,0.793,0.798,0.834,0.832,0.786,0.804]]},"model":{"project_delta":15.8,"baseline":-0.6,"additional_t_ha":16.4,"additional_tco2e":1180.8},"oracles":[{"name":"optical_sentinel2","estimate":1174.5,"sigma":70.8},{"name":"lidar_gedi","estimate":1165.6,"sigma":47.2},{"name":"archive_landsat","estimate":1207.8,"sigma":106.3}],"claimDefault":1181.0},{"id":"CT-REDD-0315","name":"\"EcoMax\" offset claim, Cerrado, Brazil","project_id":"CT-REDD-0315","geohash":"7h2k9p0","lat":-15.6,"lon":-47.8,"hectares":140.0,"note":"Developer wants to claim big \u2014 but satellites show almost no new carbon.","before":{"date":"2023-01-05","id":"S2A_MSIL2A_20230105T132241_T23LLG","ndvi":[[0.815,0.803,0.808,0.782,0.806,0.777,0.794,0.8,0.805,0.82,0.833,0.83,0.787,0.806,0.798,0.805],[0.809,0.759,0.848,0.789,0.807,0.797,0.836,0.791,0.841,0.828,0.85,0.786,0.773,0.777,0.847,0.835],[0.828,0.773,0.78,0.831,0.803,0.769,0.837,0.839,0.843,0.795,0.824,0.846,0.841,0.771,0.799,0.827],[0.821,0.812,0.795,0.805,0.775,0.77,0.811,0.769,0.745,0.796,0.785,0.812,0.811,0.779,0.825,0.835],[0.766,0.802,0.841,0.787,0.749,0.761,0.703,0.662,0.696,0.645,0.77,0.799,0.768,0.802,0.784,0.782],[0.82,0.836,0.849,0.778,0.723,0.67,0.632,0.615,0.591,0.553,0.693,0.773,0.786,0.821,0.813,0.78],[0.811,0.795,0.784,0.741,0.688,0.529,0.467,0.411,0.466,0.447,0.529,0.665,0.757,0.847,0.819,0.806],[0.826,0.821,0.83,0.698,0.602,0.567,0.418,0.3,0.248,0.415,0.544,0.652,0.712,0.775,0.801,0.817],[0.824,0.843,0.812,0.747,0.626,0.444,0.409,0.215,0.159,0.35,0.519,0.617,0.696,0.793,0.788,0.842],[0.779,0.791,0.829,0.766,0.62,0.54,0.381,0.334,0.253,0.399,0.497,0.666,0.69,0.795,0.78,0.806],[0.772,0.829,0.818,0.798,0.665,0.583,0.524,0.508,0.42,0.563,0.542,0.65,0.751,0.761,0.796,0.825],[0.782,0.781,0.816,0.813,0.726,0.698,0.624,0.531,0.597,0.562,0.681,0.767,0.778,0.8,0.782,0.791],[0.824,0.821,0.817,0.786,0.803,0.739,0.669,0.727,0.638,0.652,0.711,0.802,0.805,0.767,0.778,0.814],[0.821,0.828,0.79,0.827,0.808,0.784,0.795,0.779,0.736,0.8,0.81,0.77,0.834,0.789,0.779,0.799],[0.767,0.78,0.837,0.839,0.789,0.798,0.803,0.769,0.782,0.833,0.794,0.852,0.831,0.783,0.81,0.812],[0.775,0.793,0.833,0.819,0.777,0.817,0.835,0.803,0.789,0.846,0.811,0.789,0.817,0.81,0.811,0.803]]},"after":{"date":"2024-09-02","id":"S2A_MSIL2A_20240902T132249_T23LLG","ndvi":[[0.813,0.81,0.778,0.762,0.833,0.797,0.797,0.804,0.802,0.773,0.847,0.824,0.774,0.836,0.801,0.838],[0.797,0.784,0.849,0.778,0.793,0.761,0.824,0.816,0.844,0.845,0.831,0.804,0.757,0.807,0.843,0.816],[0.779,0.817,0.797,0.792,0.834,0.837,0.79,0.826,0.834,0.826,0.824,0.802,0.831,0.787,0.782,0.801],[0.795,0.815,0.843,0.826,0.802,0.814,0.768,0.813,0.721,0.787,0.838,0.776,0.77,0.808,0.777,0.794],[0.806,0.803,0.762,0.788,0.77,0.766,0.726,0.702,0.643,0.706,0.773,0.797,0.833,0.794,0.823,0.754],[0.831,0.809,0.805,0.807,0.74,0.725,0.619,0.563,0.55,0.635,0.624,0.743,0.756,0.818,0.8,0.816],[0.8,0.855,0.826,0.752,0.671,0.6,0.53,0.526,0.527,0.598,0.625,0.661,0.761,0.824,0.84,0.819],[0.823,0.807,0.801,0.731,0.641,0.568,0.445,0.268,0.34,0.423,0.49,0.657,0.74,0.811,0.79,0.8],[0.807,0.786,0.838,0.701,0.682,0.466,0.361,0.175,0.319,0.445,0.545,0.626,0.734,0.795,0.841,0.773],[0.784,0.814,0.834,0.716,0.669,0.51,0.446,0.378,0.344,0.449,0.539,0.637,0.757,0.81,0.778,0.776],[0.829,0.805,0.781,0.722,0.664,0.642,0.547,0.495,0.503,0.537,0.556,0.713,0.708,0.842,0.811,0.781],[0.824,0.806,0.815,0.83,0.726,0.654,0.639,0.645,0.585,0.613,0.687,0.712,0.82,0.829,0.818,0.809],[0.827,0.774,0.805,0.83,0.772,0.729,0.727,0.703,0.677,0.703,0.766,0.809,0.78,0.784,0.772,0.829],[0.789,0.785,0.81,0.83,0.827,0.759,0.804,0.803,0.774,0.79,0.814,0.788,0.804,0.791,0.823,0.795],[0.815,0.82,0.809,0.813,0.846,0.822,0.794,0.802,0.792,0.849,0.806,0.829,0.818,0.808,0.826,0.781],[0.821,0.792,0.777,0.778,0.827,0.85,0.772,0.772,0.819,0.798,0.82,0.829,0.843,0.78,0.821,0.782]]},"model":{"project_delta":5.49,"baseline":-0.6,"additional_t_ha":6.09,"additional_tco2e":852.6},"oracles":[{"name":"optical_sentinel2","estimate":848.0,"sigma":51.2},{"name":"lidar_gedi","estimate":841.7,"sigma":34.1},{"name":"archive_landsat","estimate":872.1,"sigma":76.7}],"claimDefault":4200.0}];
+// ===== helpers =====
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const fmt=(n,d=1)=>Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const intf=n=>Math.round(n).toLocaleString('en-US');
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const lerp=(a,b,t)=>a+(b-a)*t;const seg=(t,a,b)=>clamp((t-a)/(b-a));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function sha256(str){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+function ndviColor(v){const t=clamp((v-0.12)/0.76);const h=38+t*(144-38),s=60-t*12,l=40+(0.5-Math.abs(t-0.5))*14;return `hsl(${h} ${s}% ${l}%)`;}
+const cssvar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
+// spring kit (cth9191/animate · kit/core.js)
+const SPRING={snappy:{k:320,d:30},smooth:{k:170,d:26}};
+function springEase(t,k=170,d=26){if(t<=0)return 0;const w0=Math.sqrt(k),z=d/(2*w0);
+  if(z<1){const wd=w0*Math.sqrt(1-z*z);return 1-Math.exp(-z*w0*t)*(Math.cos(wd*t)+(z*w0/wd)*Math.sin(wd*t));}
+  return 1-Math.exp(-w0*t)*(1+w0*t);}
+const EZ={o3:t=>1-Math.pow(1-clamp(t),3),back:t=>{const u=clamp(t)-1;return 1+2.70158*u*u*u+1.70158*u*u;}};
+
+// ===== state =====
+let CUR=0, DOMAIN=10000, FUSED={mu:0}, chain=[], lastEv=null, busy=false;
+const BUYERS=["Acme Airlines","Nordic Steel AB","GreenFund ETF","City of Oslo"];
+const WALLET="0x7f3a·You";
+let xferIdx=0;
+function plot(){return PLOTS[CUR];}
+
+// ===== math (mirrors ct/oracle.py) =====
+function fuse(est){const ws=est.map(e=>1/(e.sigma*e.sigma));const sw=ws.reduce((a,b)=>a+b,0);
+  return {mu:est.reduce((a,e,i)=>a+ws[i]*e.estimate,0)/sw,s:Math.sqrt(1/sw)};}
+function evaluate(claim){const p=plot();let V=clamp(1-Math.abs(FUSED.mu-claim)/Math.max(1,claim));
+  const agree=p.oracles.filter(e=>Math.abs(e.estimate-FUSED.mu)/Math.max(1,FUSED.mu)<=0.12).length;
+  return {mu:FUSED.mu,V,confidence:V*100,agree,passed:(V*100>=90&&agree>=2),claim};}
+
+// ===== ledger (mirrors ct/ledger.py) =====
+async function hashBlock(b){const{hash,...rest}=b;return sha256(JSON.stringify(rest,Object.keys(rest).sort()));}
+async function genesis(){const g={index:0,type:'genesis',fingerprint:'0'.repeat(64),prev_hash:'0'.repeat(64)};g.hash=await hashBlock(g);chain=[g];}
+function fpFor(p){return sha256(`${p.geohash}|${p.after.date}|${p.project_id}|1`);}
+function hasFP(fp){return chain.some(b=>b.index>0&&b.fingerprint===fp&&b.type==='mint');}
+async function mint(ev){const p=plot();const fp=await fpFor(p);
+  if(hasFP(fp))return{blocked:true,fingerprint:fp};
+  const prev=chain[chain.length-1];
+  const block={index:chain.length,type:'mint',vcc_id:'CT-0x'+fp.slice(0,10),project:p.project_id,geohash:p.geohash,
+    date:p.after.date,tonnes:Math.round(ev.mu),confidence:+ev.confidence.toFixed(1),owner:WALLET,status:'active',fingerprint:fp,prev_hash:prev.hash};
+  block.hash=await hashBlock(block);chain.push(block);return{ok:true,block};}
+async function append(type,fp,extra){const prev=chain[chain.length-1];
+  const rec={index:chain.length,type,fingerprint:fp,...extra,prev_hash:prev.hash};rec.hash=await hashBlock(rec);chain.push(rec);}
+async function verifyChain(){for(let i=0;i<chain.length;i++){
+  if(await hashBlock(chain[i])!==chain[i].hash)return{ok:false,at:i};
+  if(i>0&&chain[i].prev_hash!==chain[i-1].hash)return{ok:false,at:i};}return{ok:true};}
+
+// ===== gauge =====
+(function(){const ang=Math.PI-Math.PI*0.9,cx=120,cy=140,r=100;
+  const xi=cx+(r-14)*Math.cos(ang),yi=cy-(r-14)*Math.sin(ang),xo=cx+(r+14)*Math.cos(ang),yo=cy-(r+14)*Math.sin(ang);
+  const l=$('#gGate');l.setAttribute('x1',xi);l.setAttribute('y1',yi);l.setAttribute('x2',xo);l.setAttribute('y2',yo);})();
+function setGauge(pct,pass){const v=$('#gVal');v.style.stroke=pass?'var(--good)':'var(--bad)';
+  v.setAttribute('stroke-dasharray',`${clamp(pct,0,100)} 100`);$('#gPct').textContent=fmt(pct,1)+'%';}
+
+// ===== grids & oracles =====
+function paintGrid(el,grid){const f=document.createDocumentFragment();
+  for(const row of grid)for(const v of row){const i=document.createElement('i');i.style.background=ndviColor(v);f.appendChild(i);}el.innerHTML='';el.appendChild(f);}
+function renderOracles(){const p=plot(),max=Math.max(...p.oracles.map(o=>o.estimate))*1.08;
+  $('#oracles').innerHTML=p.oracles.map(o=>`<div class="oracle"><div class="lab"><b>${label(o.name)}</b><span class="s">${fmt(o.estimate,1)} t · σ ${fmt(o.sigma,1)}</span></div><div class="obar"><i data-w="${(o.estimate/max*100).toFixed(1)}"></i></div></div>`).join('');
+  requestAnimationFrame(()=>$$('.obar i').forEach(i=>i.style.width=i.dataset.w+'%'));}
+function label(n){return {optical_sentinel2:'Sentinel-2 optical',lidar_gedi:'GEDI lidar',archive_landsat:'Landsat archive'}[n]||n;}
+function pos(x){return clamp(x/DOMAIN)*96+2;}
+function layoutMarks(){const nl=$('#numline');nl.querySelectorAll('.odot').forEach(e=>e.remove());
+  plot().oracles.forEach(o=>{const d=document.createElement('div');d.className='odot';d.style.left=pos(o.estimate)+'%';nl.insertBefore(d,$('#muMark'));});
+  $('#muMark').style.left=pos(FUSED.mu)+'%';}
+
+// ===== plot selection =====
+function renderPlots(){$('#plots').innerHTML=PLOTS.map((p,i)=>`<button class="plotcard${i===CUR?' sel':''}" data-i="${i}">
+  <div class="pid">${p.project_id}</div><div class="pn">${p.name}</div><div class="pm">${p.hectares} ha · μ≈${intf(fuse(p.oracles).mu)} t</div></button>`).join('');
+  $$('.plotcard').forEach(b=>b.onclick=()=>selectPlot(+b.dataset.i));}
+function selectPlot(i){CUR=i;const p=plot();FUSED=fuse(p.oracles);
+  renderPlots();
+  paintGrid($('#gridBefore'),p.before.ndvi);paintGrid($('#gridAfter'),p.after.ndvi);
+  $('#dBefore').textContent=p.before.date;$('#dAfter').textContent=p.after.date;
+  $('#plotHa').textContent=p.geohash+' · '+p.hectares+' ha';
+  $('#mDelta').textContent='+'+fmt(p.model.project_delta,2)+' t/ha';
+  $('#mBase').textContent=fmt(p.model.baseline,1)+' t/ha';
+  $('#mArea').textContent=p.hectares+' ha';
+  $('#mAdd').textContent=fmt(p.model.additional_tco2e,1)+' tCO₂e';
+  DOMAIN=Math.round(Math.max(p.model.additional_tco2e,p.claimDefault,...p.oracles.map(o=>o.estimate))*2.4);
+  const sl=$('#claimSlider');sl.min=50;sl.max=Math.round(DOMAIN*0.95);sl.value=Math.round(p.claimDefault);
+  $('#claimHint').innerHTML=`Three oracles fuse to <b>μ = ${intf(FUSED.mu)} tCO₂e</b>. The verifier accepts your claim only if it matches that evidence within the 90% gate.`;
+  $('#presets').innerHTML=`<button class="preset" data-c="${Math.round(p.model.additional_tco2e)}">↩ Honest (${intf(p.model.additional_tco2e)} t)</button>
+    <button class="preset" data-c="${Math.round(p.model.additional_tco2e*3.1)}">⚠ Inflate 3.1×</button>
+    <button class="preset" data-c="${Math.round(FUSED.mu*0.5)}">Under-claim</button>`;
+  $$('.preset').forEach(b=>b.onclick=()=>{sl.value=b.dataset.c;onClaim();});
+  renderOracles();layoutMarks();resetSteps();onClaim();loadLive(p);
+  $('#seqlog').innerHTML='';$$('.actor').forEach(a=>a.classList.remove('lit'));$('#pulse').style.opacity=0;
+}
+
+// ===== claim interaction =====
+function onClaim(){const claim=+$('#claimSlider').value,ev=evaluate(claim);lastEv=ev;
+  $('#claimVal').textContent=intf(claim);$('#claimMark').style.left=pos(claim)+'%';
+  setGauge(ev.confidence,ev.passed);
+  const vd=$('#verdict'),sub=$('#bSubmit');
+  if(ev.passed){vd.className='verdict pass';vd.textContent='✓ matches the evidence — clears the 90% gate.';sub.disabled=false;sub.textContent='📡 Submit claim to the oracle network';}
+  else{vd.className='verdict fail';const over=Math.round((claim/ev.mu-1)*100);
+    vd.textContent=`✕ ${over>0?'+'+over+'%':over+'%'} vs independent μ — this will be rejected.`;sub.disabled=false;sub.textContent='📡 Submit anyway (watch it get rejected)';}
+}
+
+// ===== steps =====
+function resetSteps(){$$('.step').forEach(s=>s.classList.remove('on','done'));$('.step[data-s="0"]').classList.add('done');}
+function stepOn(n){$$('.step').forEach(s=>{const i=+s.dataset.s;s.classList.toggle('on',i===n);if(i<n)s.classList.add('done');});}
+
+// ===== sequence diagram =====
+const AX={you:0.155,oracle:0.385,reg:0.615,chain:0.845};
+function litActor(a){$$('.actor').forEach(x=>x.classList.toggle('lit',x.dataset.a===a));}
+function movePulse(a,show=true){const p=$('#pulse');p.style.opacity=show?1:0;p.style.left=(AX[a]*100)+'%';}
+async function seqLine(text,bad){const log=$('#seqlog');const el=document.createElement('div');
+  el.className='ln'+(bad?' bad':'');el.innerHTML=`<span class="ar">${bad?'✕':'→'}</span><span>${text}</span>`;
+  log.appendChild(el);await sleep(40);el.classList.add('on');await sleep(620);}
+
+async function submit(){
+  if(busy||!lastEv)return;busy=true;$('#bSubmit').disabled=true;$('#toast').className='toast';
+  $('#seqlog').innerHTML='';const ev=lastEv,p=plot();
+  stepOn(1);
+  litActor('you');movePulse('you');await sleep(250);
+  movePulse('oracle');litActor('oracle');await seqLine(`You → Oracle Network: verify claim of <b>${intf(ev.claim)} tCO₂e</b>`);
+  await seqLine(`Oracle Network: fuse Sentinel-2 + GEDI + Landsat → μ = <b>${intf(ev.mu)} t</b> (${ev.agree}/3 agree)`);
+  setGauge(ev.confidence,ev.passed);
+  movePulse('you');await seqLine(`Oracle Network → You: confidence <b>${fmt(ev.confidence,1)}%</b> vs 90% gate`);
+  if(!ev.passed){
+    await seqLine(`Verdict: over-credit — <b>claim rejected</b>, no token minted`,true);
+    movePulse('you',false);litActor('');$('#bSubmit').disabled=false;busy=false;
+    toast('bad','✕','Claim rejected','Claimed',intf(ev.claim)+' t','Independent μ',intf(ev.mu)+' t','Confidence',fmt(ev.confidence,1)+'% < 90%','Result','fraud never reaches the market');
+    return;
+  }
+  stepOn(2);
+  movePulse('reg');litActor('reg');await seqLine(`You → Registry: mint Verified Climate Claim`);
+  const res=await mint(ev);
+  if(res.blocked){await seqLine(`Registry: fingerprint already exists — <b>double-count blocked</b>`,true);
+    movePulse('you',false);litActor('');$('#bSubmit').disabled=false;busy=false;await refresh();
+    toast('warn','⛔','Double-count blocked','Fingerprint',res.fingerprint.slice(0,22)+'…','Rule','one token per geo-temporal fingerprint','Result','mint refused');
+    return;}
+  movePulse('chain');litActor('chain');await seqLine(`Registry → Blockchain: append block #${res.block.index} · fp ${res.block.fingerprint.slice(0,10)}…`);
+  movePulse('you');litActor('you');await seqLine(`Blockchain → You: <b>VCC ${res.block.vcc_id} sealed</b> · ${intf(res.block.tonnes)} t`);
+  movePulse('you',false);litActor('');
+  stepOn(3);$('.step[data-s="3"]').classList.add('done');
+  await refresh();
+  toast('ok','🔒','Verified Climate Claim minted','VCC ID',res.block.vcc_id,'Net additional',intf(res.block.tonnes)+' tCO₂e','Confidence',fmt(res.block.confidence,1)+'%','Owner',WALLET,'Evidence','anchored on chain ✓');
+  $('#bSubmit').disabled=false;busy=false;onClaim();
+}
+
+// ===== lifecycle actions =====
+async function transfer(fp){const b=chain.find(x=>x.type==='mint'&&x.fingerprint===fp);if(!b||b.status!=='active'||b.forged)return;
+  const buyer=BUYERS[xferIdx++%BUYERS.length];const from=b.owner;b.owner=buyer;
+  await append('transfer',fp,{from,to:buyer,vcc_id:b.vcc_id});await refresh();
+  toast('buy','💸','Ownership transferred','VCC',b.vcc_id,'From',from,'To',buyer,'Chain','transfer block appended');}
+async function retireC(fp){const b=chain.find(x=>x.type==='mint'&&x.fingerprint===fp);if(!b||b.status!=='active'||b.forged)return;
+  b.status='retired';b.retiredBy=b.owner;b.retiredAt=new Date().toISOString().slice(0,10);
+  await append('retire',fp,{vcc_id:b.vcc_id,by:b.owner});await refresh();
+  toast('ok','♻️','Credit retired — forever','VCC',b.vcc_id,'Retired by',b.owner,'Tonnes',intf(b.tonnes)+' tCO₂e','Note','can never be used or sold again');}
+async function tamper(){const t=[...chain].reverse().find(b=>b.type==='mint'&&!b.forged);
+  if(!t){toast('warn','⚒','Nothing to forge yet','Hint','mint an honest VCC first, then forge it');return;}
+  t._orig=t.tonnes;t.tonnes=Math.round(t.tonnes*2.5);t.forged=true;await refresh();
+  const broken=!(await verifyChain()).ok;
+  toast('bad','✕','Forgery detected — chain broken','Edited',t.vcc_id+' → '+intf(t.tonnes)+' t','Check','stored hash ≠ recomputed hash','Result',broken?'tamper is evident instantly':'—','Fix','press Reset to restore');
+}
+async function resetAll(){xferIdx=0;await genesis();await refresh();$('#toast').className='toast';$('#seqlog').innerHTML='';
+  $$('.actor').forEach(a=>a.classList.remove('lit'));$('#pulse').style.opacity=0;resetSteps();onClaim();}
+
+// ===== certificate (downloadable PNG) =====
+let LOGO=null;(function(){const i=new Image();i.onload=()=>LOGO=i;i.src='logo.png';})();
+function certificate(fp){const b=chain.find(x=>x.type==='mint'&&x.fingerprint===fp);if(!b)return;
+  const W=1000,H=640,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  x.fillStyle='#0b100e';x.fillRect(0,0,W,H);
+  x.strokeStyle='#34d399';x.lineWidth=3;x.strokeRect(24,24,W-48,H-48);
+  x.strokeStyle='rgba(52,211,153,.3)';x.lineWidth=1;x.strokeRect(38,38,W-76,H-76);
+  if(LOGO){const lw=120,lh=LOGO.height*lw/LOGO.width;x.drawImage(LOGO,W/2-lw/2,64,lw,lh);}
+  x.textAlign='center';x.fillStyle='#e9f0ea';
+  x.font='800 40px Syne, system-ui, sans-serif';x.fillText('Certificate of Retirement',W/2,236);
+  x.fillStyle='#34d399';x.font='600 20px "IBM Plex Mono", monospace';x.fillText('Verified Climate Claim · CarbonTruth',W/2,270);
+  x.fillStyle='#8ea79a';x.font='500 17px "IBM Plex Mono", monospace';
+  const rows=[['VCC ID',b.vcc_id],['Project',b.project],['Net additional',intf(b.tonnes)+' tCO₂e'],
+    ['Confidence',fmt(b.confidence,1)+'%'],['Retired by',b.retiredBy||b.owner],['Retired on',b.retiredAt||new Date().toISOString().slice(0,10)],
+    ['Fingerprint',b.fingerprint.slice(0,40)+'…']];
+  let yy=336;rows.forEach(([k,v])=>{x.textAlign='left';x.fillStyle='#8ea79a';x.fillText(k,180,yy);
+    x.textAlign='right';x.fillStyle='#e9f0ea';x.fillText(String(v),W-180,yy);yy+=42;});
+  x.textAlign='center';x.fillStyle='#5e7268';x.font='500 14px "IBM Plex Mono", monospace';
+  x.fillText('Retired once, forever · tamper-evident on the CarbonTruth ledger · Team Pyragrid 2026',W/2,H-56);
+  try{const a=document.createElement('a');a.download=b.vcc_id+'-retirement.png';a.href=c.toDataURL('image/png');
+    document.body.appendChild(a);a.click();a.remove();
+    toast('ok','⤓','Certificate downloaded','File',b.vcc_id+'-retirement.png','Tip','attach this to your sustainability report');}
+  catch(e){toast('warn','⤓','Preview only here','Note','certificate download works on the deployed Vercel site');}
+}
+
+// ===== toast =====
+function toast(kind,ic,title,...kv){const t=$('#toast');t.className='toast '+kind+' show';
+  let rows='';for(let i=0;i<kv.length;i+=2)rows+=`<div class="tr"><span>${kv[i]}</span><span>${kv[i+1]}</span></div>`;
+  t.innerHTML=`<div class="th"><span class="ic">${ic}</span>${title}</div>${rows}`;}
+
+// ===== registry =====
+async function refresh(){
+  const mints=chain.filter(b=>b.type==='mint'),active=mints.filter(b=>b.status==='active');
+  const tonnes=active.reduce((a,b)=>a+b.tonnes,0),retired=mints.filter(b=>b.status==='retired').reduce((a,b)=>a+b.tonnes,0);
+  $('#rstats').innerHTML=`<span>minted ${mints.length}</span><span>active ${intf(tonnes)} t</span><span>retired ${intf(retired)} t</span><span>${chain.length} blocks</span>`;
+  $('#blocks').textContent=chain.length;
+  const ck=await verifyChain(),el=$('#intact');el.className='intact'+(ck.ok?'':' broken');
+  el.innerHTML=`<span class="led"></span>${ck.ok?'chain intact':'⚠ chain broken at block '+ck.at} · ${chain.length} blocks`;
+  const body=$('#regBody');
+  if(!mints.length){$('#regEmpty').style.display='block';body.innerHTML='';return;}$('#regEmpty').style.display='none';
+  body.innerHTML=mints.slice().reverse().map(b=>{const st=b.forged?'forged':b.status;let acts='';
+    if(b.status==='active'&&!b.forged){acts=`<button class="act xfer" data-fp="${b.fingerprint}">transfer ▸</button><button class="act ret" data-fp="${b.fingerprint}">retire</button>`;}
+    else if(b.status==='retired'){acts=`<button class="act cert" data-fp="${b.fingerprint}">⤓ certificate</button>`;}
+    return `<tr><td>${b.vcc_id}</td><td>${b.project}</td><td>${intf(b.tonnes)}</td><td>${b.owner}</td><td><span class="tag ${st}">${st}</span></td><td>${acts}</td></tr>`;}).join('');
+  $$('.act.xfer').forEach(x=>x.onclick=()=>transfer(x.dataset.fp));
+  $$('.act.ret').forEach(x=>x.onclick=()=>retireC(x.dataset.fp));
+  $$('.act.cert').forEach(x=>x.onclick=()=>certificate(x.dataset.fp));
+}
+
+// ===== live Sentinel-2 via serverless function =====
+async function loadLive(p){const box=$('#livebox'),head=$('#liveHead'),list=$('#liveList');
+  box.className='livebox';head.textContent='Fetching live Sentinel-2 scenes…';list.innerHTML='';
+  try{const r=await fetch(`/api/stac?lat=${p.lat}&lon=${p.lon}`);const j=await r.json();
+    const sc=(j.scenes||[]).slice(0,3);
+    if(sc.length){box.className='livebox ok';head.textContent='Live Sentinel-2 scenes over this plot (Planetary Computer)';
+      list.innerHTML=sc.map(s=>`<li>${s.id} · ${(s.datetime||'').slice(0,10)} · ☁ ${Math.round(s.cloud||0)}%</li>`).join('');}
+    else throw 0;
+  }catch(e){box.className='livebox';head.textContent='Live feed offline — showing bundled sample scene IDs';
+    list.innerHTML=`<li>${p.before.id} · ${p.before.date}</li><li>${p.after.id} · ${p.after.date}</li>`;}
+}
+
+// ===== theme =====
+(function(){const btn=$('#themeBtn'),root=document.documentElement;
+  const sysDark=()=>window.matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches;
+  let cur=null;try{cur=localStorage.getItem('ct-theme');}catch(e){}
+  if(cur==='light'||cur==='dark')root.setAttribute('data-theme',cur);
+  btn.onclick=()=>{const eff=root.getAttribute('data-theme')||(sysDark()?'dark':'light');const next=eff==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);try{localStorage.setItem('ct-theme',next);}catch(e){}};})();
+
+// ===== intro animation (shape-morph + springs) =====
+function runIntro(force){const ov=$('#intro');if(!ov)return;
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;let seen=false;try{seen=localStorage.getItem('ct-introseen')==='1';}catch(e){}
+  if(!force&&(reduce||seen)){ov.classList.add('gone');setTimeout(()=>ov.remove(),10);return;}
+  ov.classList.remove('gone');const cv=$('#introCanvas'),ctx=cv.getContext('2d'),cap=$('#introCap');
+  const W=620,H=420,DPR=Math.min(2,devicePixelRatio||1);cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+  const cx=W/2,cy=H/2-18,N=12,cell=19,gap=3,span=N*(cell+gap)-gap,gx0=cx-span/2,gy0=cy-span/2;
+  const px=[];for(let y=0;y<N;y++)for(let xx=0;xx<N;xx++){const d=Math.hypot(xx-5.5,y-6)/6.2;const ndvi=0.86-clamp(1-d)*0.56;px.push({ndvi,bx:gx0+xx*(cell+gap),by:gy0+y*(cell+gap)});}
+  const caps=[[0.3,"Satellites watch the forest"],[2.1,"AI turns pixels into tonnes of CO₂"],[3.6,"Three independent oracles must agree"],[5.2,"Verified once. Trusted everywhere."]];
+  function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+  let start=null,raf,cc='';function setCap(t){let c='';for(const[tt,txt]of caps)if(t>=tt)c=txt;if(c!==cc){cc=c;cap.classList.remove('on');cap.textContent=c;requestAnimationFrame(()=>cap.classList.add('on'));}}
+  function done(){try{localStorage.setItem('ct-introseen','1');}catch(e){}cancelAnimationFrame(raf);ov.classList.add('gone');setTimeout(()=>{if(ov&&ov.parentNode)ov.remove();},800);}
+  $('#introSkip').onclick=done;
+  function frame(ts){try{if(start==null)start=ts;const t=(ts-start)/1000;ctx.clearRect(0,0,W,H);setCap(t);
+    const accent=cssvar('--accent'),gate=cssvar('--gate'),good=cssvar('--good'),fgd=cssvar('--fg-dim'),bg=cssvar('--bg');
+    const gather=EZ.o3(seg(t,1.7,2.4));
+    for(let i=0;i<px.length;i++){const p=px[i];const rv=clamp(seg(t,0,0.9)*1.5-(i/px.length)*0.5);if(rv<=0)continue;
+      const X=lerp(p.bx,cx-cell/2,gather),Y=lerp(p.by,cy-cell/2,gather);ctx.globalAlpha=rv*(1-gather*0.95);ctx.fillStyle=ndviColor(p.ndvi);
+      const s=cell*(1-gather*0.6)*(0.55+0.45*EZ.back(rv));ctx.fillRect(X+(cell-s)/2,Y+(cell-s)/2,s,s);}ctx.globalAlpha=1;
+    if(t<1.7){const sy=gy0+seg(t,0.2,1.5)*span;ctx.globalAlpha=0.55;ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(gx0-8,sy);ctx.lineTo(gx0+span+8,sy);ctx.stroke();ctx.globalAlpha=1;}
+    const nIn=seg(t,2.05,2.5),nOut=seg(t,3.25,3.55);
+    if(nIn>0&&nOut<1){const sc=0.7+0.3*EZ.back(nIn),a=nIn*(1-nOut);ctx.globalAlpha=a;ctx.fillStyle=accent;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`800 ${46*sc}px Syne,system-ui,sans-serif`;const val=Math.round(4096*EZ.o3(seg(t,2.05,3.0)));ctx.fillText(val.toLocaleString()+' tCO₂e',cx,cy+6);ctx.globalAlpha=1;}
+    if(t>=3.35&&t<4.95){const conv=springEase(Math.max(0,t-3.55),SPRING.snappy.k,SPRING.snappy.d);
+      const appear=seg(t,3.35,3.65),out=seg(t,4.75,4.95),spread=98,ang=[-2.5,-0.2,2.0],col=[gate,accent,gate];
+      for(let i=0;i<3;i++){const r=spread*(1-conv);const X=cx+Math.cos(ang[i])*r,Y=cy+6+Math.sin(ang[i])*r;
+        ctx.globalAlpha=appear*(1-out);ctx.fillStyle=col[i];ctx.beginPath();ctx.arc(X,Y,10,0,7);ctx.fill();
+        if(conv>0.2){ctx.globalAlpha=appear*(1-out)*0.3;ctx.strokeStyle=col[i];ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X,Y);ctx.lineTo(cx,cy+6);ctx.stroke();}}ctx.globalAlpha=1;}
+    const lockIn=seg(t,4.7,5.05);
+    if(lockIn>0){const a=lockIn,bw=78,bh=60,bx=cx-bw/2,by=cy+2;const snap=t>=5.25?springEase(t-5.25,SPRING.snappy.k,SPRING.snappy.d):0;const lift=20*(1-snap);
+      ctx.globalAlpha=a;ctx.lineWidth=12;ctx.lineCap='round';ctx.strokeStyle=t>=5.3?good:fgd;
+      ctx.beginPath();ctx.arc(cx,by-lift,21,Math.PI,0,false);ctx.moveTo(cx-21,by-lift);ctx.lineTo(cx-21,by);ctx.moveTo(cx+21,by-lift);ctx.lineTo(cx+21,by);ctx.stroke();
+      ctx.fillStyle=t>=5.3?good:cssvar('--raised');rr(bx,by,bw,bh,11);ctx.fill();ctx.fillStyle=bg;ctx.beginPath();ctx.arc(cx,by+26,7,0,7);ctx.fill();ctx.fillRect(cx-2.5,by+28,5,15);ctx.globalAlpha=1;
+      if(t>=5.25){const pp=seg(t,5.25,5.95);ctx.globalAlpha=(1-pp)*0.6;ctx.strokeStyle=good;ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy+24,34+pp*90,0,7);ctx.stroke();ctx.globalAlpha=1;}}
+    if(t>6.4)return done();raf=requestAnimationFrame(frame);}catch(e){done();}}
+  raf=requestAnimationFrame(frame);}
+
+// ===== boot =====
+(async function(){
+  renderPlots();
+  $('#claimSlider').addEventListener('input',onClaim);
+  $('#bSubmit').onclick=submit;$('#bTamper').onclick=tamper;$('#bReset').onclick=resetAll;
+  $('#replayIntro').onclick=()=>runIntro(true);
+  await genesis();await refresh();selectPlot(0);
+  runIntro(false);
+})();
+</script>

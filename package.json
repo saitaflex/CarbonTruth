@@ -1,0 +1,12 @@
+{
+  "name": "carbontruth",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CarbonTruth — the SSL certificate for climate data. Verification layer for carbon claims. Team Pyragrid, IEEE ClimateChain 2026.",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  }
+}

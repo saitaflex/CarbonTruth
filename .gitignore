@@ -1,0 +1,13 @@
+# deps / build
+node_modules/
+.vercel/
+.DS_Store
+
+# python
+__pycache__/
+*.pyc
+prototype/data/ledger.json
+
+# env
+.env
+.env.local
