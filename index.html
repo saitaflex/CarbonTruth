@@ -291,9 +291,11 @@
   .cursor-ring.hot{width:60px;height:60px;background:rgba(255,255,255,.1);border-color:transparent}
   .cursor-dot.hide,.cursor-ring.hide{opacity:0}
   @media (hover:none),(pointer:coarse){.cursor-dot,.cursor-ring{display:none!important}}
-  .reveal{opacity:0;transform:translateY(30px);transition:opacity 1s cubic-bezier(.19,.7,.2,1),transform 1s cubic-bezier(.19,.7,.2,1)}
-  .reveal.r-right{transform:translateX(36px)}
-  .reveal.in{opacity:1;transform:none}
+  .pm .sec-head,.pm .stat,.pm .card,.pm .pstep,.pm .track,.pm .mk,.pm .ref,.pm .demo-shell,
+  .pm .hero-logo,.pm .hero .tagpill,.pm .hero h1,.pm .hero .lede,.pm .hero .cta,.pm .hero .trust,.pm .hero .cert{
+    opacity:0;transform:translateY(30px);transition:opacity 1s cubic-bezier(.19,.7,.2,1),transform 1s cubic-bezier(.19,.7,.2,1)}
+  .pm .hero .cert{transform:translateX(36px)}
+  .pm .in{opacity:1!important;transform:none!important}
   .herofx{position:absolute;inset:-25%;z-index:-1;pointer-events:none;opacity:.7;
     background:radial-gradient(38% 40% at 30% 32%,color-mix(in srgb,var(--accent) 30%,transparent),transparent 60%),
       radial-gradient(36% 38% at 73% 40%,color-mix(in srgb,var(--gate) 24%,transparent),transparent 60%),
@@ -312,11 +314,11 @@
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
     .cert::before,.herofx,.marquee .mtrack{animation:none}
-    .reveal{opacity:1;transform:none;transition:none}
     *{transition-duration:.01ms!important}
   }
 </style>
 
+<script>try{if(!matchMedia('(prefers-reduced-motion:reduce)').matches && 'IntersectionObserver' in window)document.documentElement.classList.add('pm');}catch(e){}</script>
 <div id="intro">
   <video id="introVid" muted playsinline autoplay preload="auto" poster="intro-poster.jpg">
     <source src="intro.mp4" type="video/mp4">
@@ -800,19 +802,21 @@ function runIntro(force){
 (function premium(){
   const touch=matchMedia('(hover:none),(pointer:coarse)').matches;
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  const items=[];
-  function mark(sel){document.querySelectorAll(sel).forEach((el,i)=>{if(el.closest('#intro'))return;
-    if(el.classList.contains('reveal'))return; el.classList.add('reveal'); el.style.transitionDelay=((i%6)*0.06)+'s'; items.push(el);});}
-  ['.sec-head','.card','.stat','.pstep','.track','.mk','.ref','.demo-shell'].forEach(mark);
-  ['.hero-logo','.hero .tagpill','.hero h1','.hero .lede','.hero .cta','.hero .trust'].forEach((s,i)=>{
-    const el=document.querySelector(s); if(!el)return; el.classList.add('reveal'); el.style.transitionDelay=(0.12+i*0.09)+'s'; items.push(el);});
-  const cert=document.querySelector('.hero .cert'); if(cert){cert.classList.add('reveal','r-right'); cert.style.transitionDelay='.28s'; items.push(cert);}
-  if(reduce){ items.forEach(el=>el.classList.add('in')); }
-  else{
-    const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -7% 0px'});
-    items.forEach(el=>io.observe(el));
-    requestAnimationFrame(()=>document.querySelectorAll('.hero .reveal').forEach(el=>el.classList.add('in')));
-  }
+  const items=[], root=document.documentElement;
+  const HERO=['.hero-logo','.hero .tagpill','.hero h1','.hero .lede','.hero .cta','.hero .trust','.hero .cert'];
+  function showAll(){ items.forEach(el=>el.classList.add('in')); root.classList.remove('pm'); }
+  try{
+    function mark(sel){document.querySelectorAll(sel).forEach((el,i)=>{if(el.closest('#intro'))return;if(items.indexOf(el)>=0)return;el.style.transitionDelay=((i%6)*0.06)+'s';items.push(el);});}
+    ['.sec-head','.card','.stat','.pstep','.track','.mk','.ref','.demo-shell'].forEach(mark);
+    HERO.forEach((s,i)=>{const el=document.querySelector(s); if(!el)return; el.style.transitionDelay=(0.12+i*0.09)+'s'; items.push(el);});
+    if(reduce || !('IntersectionObserver' in window)){ showAll(); }
+    else{
+      const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.1,rootMargin:'0px 0px -6% 0px'});
+      items.forEach(el=>io.observe(el));
+      requestAnimationFrame(()=>HERO.forEach(s=>{const el=document.querySelector(s); if(el)el.classList.add('in');}));
+      setTimeout(()=>{ if(root.classList.contains('pm')) items.forEach(el=>{ if(el.getBoundingClientRect().top<innerHeight) el.classList.add('in'); }); },1200);
+    }
+  }catch(e){ showAll(); }
   document.querySelectorAll('.trust b').forEach(b=>{const to=parseInt(b.textContent,10); if(isNaN(to))return; b.textContent='0';
     const io2=new IntersectionObserver(es=>{es.forEach(e=>{if(!e.isIntersecting)return; const s=performance.now();
       (function tick(n){const p=Math.min(1,(n-s)/1000); b.textContent=Math.round(to*(1-Math.pow(1-p,3))); if(p<1)requestAnimationFrame(tick);})(s); io2.disconnect();});},{threshold:1});
