@@ -1,4 +1,19 @@
-<title>CarbonTruth</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CarbonTruth — Verify once. Trusted everywhere.</title>
+<meta name="description" content="CarbonTruth is the SSL certificate for climate data — an AI + multi-oracle verification layer that turns satellite data into unforgeable, retire-once carbon credits. Team Pyragrid · IEEE ClimateChain 2026.">
+<meta name="theme-color" content="#0b100e">
+<link rel="icon" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://carbontruth.vercel.app">
+<meta property="og:title" content="CarbonTruth — Verify once. Trusted everywhere.">
+<meta property="og:description" content="The SSL certificate for climate data: AI + multi-oracle verification turning satellite data into unforgeable, retire-once carbon credits.">
+<meta property="og:image" content="https://carbontruth.vercel.app/intro-poster.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CarbonTruth — Verify once. Trusted everywhere.">
+<meta name="twitter:description" content="AI + multi-oracle verification turning satellite data into unforgeable, retire-once carbon credits. Team Pyragrid.">
+<meta name="twitter:image" content="https://carbontruth.vercel.app/intro-poster.jpg">
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
   :root{
@@ -280,6 +295,37 @@
     .demo-body{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.plots{grid-template-columns:1fr}}
   @media (max-width:560px){.stats,.cards3,.pipe,.tracks,.market{grid-template-columns:1fr}
     .step-row{grid-template-columns:repeat(2,1fr)}.step:nth-child(2){border-right:0}.trust{gap:16px}}
+  /* ===== usability layer ===== */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+  .tip{position:relative;border-bottom:1px dotted currentColor;cursor:help;text-decoration:none}
+  .tip::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%) translateY(4px);
+    width:max-content;max-width:min(240px,74vw);background:var(--raised);color:var(--fg);border:1px solid var(--border-2);
+    border-radius:10px;padding:8px 11px;font-family:var(--sans);font-size:.74rem;font-weight:400;line-height:1.45;
+    letter-spacing:0;text-transform:none;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.18s;z-index:40;white-space:normal;text-align:left}
+  .tip:hover::after,.tip:focus-visible::after,.tip.open::after{opacity:1;transform:translateX(-50%) translateY(0)}
+  .tourbtn{font-family:var(--sans);font-weight:600;font-size:.8rem;cursor:pointer;border:1px solid var(--accent);
+    background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--fg);padding:8px 14px;border-radius:10px;display:inline-flex;gap:7px;align-items:center}
+  .tourbtn:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+  .plothint{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:.72rem;color:var(--accent);margin-bottom:12px}
+  .plothint .arrow{animation:nudge 1.3s ease-in-out infinite;font-size:1rem}
+  @keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+  .plothint.gone{display:none}
+  .scrollhint{display:none;font-family:var(--mono);font-size:.66rem;color:var(--faint);margin-bottom:6px}
+  .judges{background:var(--surface);border-block:1px solid var(--border)}
+  .judges .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:14px}
+  .judges .jp{font-family:var(--mono);font-size:.74rem;color:var(--muted);margin-right:auto}
+  .judges .jp b{color:var(--fg);font-weight:600}
+  .judges a{font-family:var(--sans);font-weight:600;font-size:.84rem;text-decoration:none;padding:9px 15px;border-radius:10px;border:1px solid var(--border);color:var(--fg);transition:.15s;display:inline-flex;gap:7px;align-items:center;cursor:pointer}
+  .judges a:hover{border-color:var(--accent)}
+  .judges a.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+  .doi a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 40%,transparent)}
+  .doi a:hover{border-bottom-color:var(--accent)}
+  @media (max-width:560px){
+    .preset,.act,.retire,.rtool,.tourbtn{padding:9px 13px;font-size:.74rem}
+    .plotcard{padding:15px 16px}
+    .scrollhint{display:block}
+    #introSkip{padding:10px 16px}
+  }
   /* ===== premium motion layer ===== */
   html{scroll-behavior:smooth}
   section[id]{scroll-margin-top:76px}
@@ -367,6 +413,13 @@
   <span>VERIFIED CLIMATE CLAIMS <i class="s">◆</i> SATELLITE MRV <i class="s">◆</i> RETIRE ONCE <i class="s">◆</i> MULTI-ORACLE CONSENSUS <i class="s">◆</i> NO DOUBLE-COUNTING <i class="s">◆</i> PROOF, NOT PROMISES <i class="s">◆</i></span>
 </div></div>
 
+<section class="judges"><div class="wrap">
+  <span class="jp"><b>For reviewers / judges:</b> CarbonTruth — the SSL certificate for climate data. Verify once, trusted everywhere.</span>
+  <a class="primary" href="#demo">▶ Try the live demo</a>
+  <a href="https://github.com/saitaflex/CarbonTruth" target="_blank" rel="noopener">GitHub repo ↗</a>
+  <a id="jIntro" href="#top">↺ Watch the intro</a>
+</div></section>
+
 <section class="band" id="problem"><div class="wrap">
   <div class="sec-head"><span class="eyebrow">The trillion-dollar trust gap</span>
     <h2>The science is brutal on carbon markets</h2>
@@ -400,7 +453,8 @@
     <div class="demo-top"><span class="dot3"><i></i><i></i><i></i></span><span class="ttl">carbontruth · you are the verifier</span><span class="chip"><span class="led"></span>pipeline live</span></div>
 
     <div class="plotpick">
-      <div class="lab">① Pick a project to verify</div>
+      <div class="plothint" id="plotHint"><span class="arrow">↓</span> New here? <button class="tourbtn" id="bTour">▶ Watch a 20-sec guided tour</button></div>
+      <div class="lab">① Pick a project &nbsp;·&nbsp; ② set your claim &nbsp;·&nbsp; ③ submit → mint → trade → retire</div>
       <div class="plots" id="plots"></div>
     </div>
 
@@ -413,7 +467,7 @@
 
     <div class="demo-body">
       <div class="pane">
-        <h4><span>② Observe — Sentinel-2 NDVI</span><span id="plotHa" class="mono" style="color:var(--faint)"></span></h4>
+        <h4><span>② Observe — Sentinel-2 <span class="tip" tabindex="0" data-tip="NDVI (Normalized Difference Vegetation Index): satellite 'greenness' computed from red & near-infrared light. Higher = more living biomass.">NDVI</span></span><span id="plotHa" class="mono" style="color:var(--faint)"></span></h4>
         <div class="ndvi-wrap">
           <div class="ndvi-col"><div class="cap"><span>before</span><span id="dBefore"></span></div><div class="grid16" id="gridBefore"></div></div>
           <div class="ndvi-col"><div class="cap"><span>after</span><span id="dAfter"></span></div><div class="grid16" id="gridAfter"></div></div>
@@ -427,7 +481,7 @@
           <div class="mcell"><div class="k">Carbon stock gained</div><div class="v" id="mDelta">—</div></div>
           <div class="mcell"><div class="k">Counterfactual baseline</div><div class="v" id="mBase">—</div></div>
           <div class="mcell"><div class="k">Plot area</div><div class="v" id="mArea">—</div></div>
-          <div class="mcell"><div class="k">Net additional</div><div class="v accent" id="mAdd">—</div></div>
+          <div class="mcell"><div class="k"><span class="tip" tabindex="0" data-tip="Additionality: only carbon beyond what would have happened anyway (vs a counterfactual baseline) can be credited.">Net additional</span></div><div class="v accent" id="mAdd">—</div></div>
         </div>
       </div>
 
@@ -435,7 +489,7 @@
         <h4><span>④ Verify — set your claim, then submit</span></h4>
         <div class="claimbox">
           <div class="ch"><span class="lab">You are claiming</span><span class="val" id="claimVal">—</span></div>
-          <input type="range" id="claimSlider" min="50" max="9000" step="1" value="4123">
+          <input type="range" id="claimSlider" min="50" max="9000" step="1" value="4123" aria-label="Your claimed tonnes of CO2e">
           <div class="numline" id="numline"><div class="axis"></div><div class="mu" id="muMark"></div><div class="claimM" id="claimMark"></div></div>
           <div class="hint" id="claimHint"></div>
           <div class="presets" id="presets"></div>
@@ -474,6 +528,7 @@
         </div>
       </div>
       <div class="rtop" style="margin-bottom:8px"><span class="rstats" id="rstats"></span></div>
+      <div class="scrollhint">swipe → to see owner &amp; actions</div>
       <div class="tablescroll"><table class="reg"><thead><tr><th>VCC ID</th><th>Project</th><th>tCO₂e</th><th>Owner</th><th>Status</th><th>Actions</th></tr></thead><tbody id="regBody"></tbody></table></div>
       <div class="reg-empty" id="regEmpty">No credits yet — set an honest claim and submit it to mint the first VCC.</div>
       <div class="toast" id="toast"></div>
@@ -490,8 +545,8 @@
   <div class="pipe">
     <div class="pstep"><div class="num">01 · OBSERVE</div><h3>Open satellite optics</h3><p>Sentinel-2 red & near-infrared bands over the plot, before and after. We query Microsoft's free Planetary Computer for live scene IDs — no API key.</p><div class="eq">NDVI = <b>(B08 − B04)</b> / (B08 + B04)</div></div>
     <div class="pstep"><div class="num">02 · ESTIMATE</div><h3>Biomass → additional CO₂e</h3><p>NDVI maps to aboveground biomass, then to CO₂e. A counterfactual baseline means we only ever credit carbon that's genuinely <i>additional</i>.</p><div class="eq">AGB = 0.0673(<b>ρD²H</b>)<sup>0.976</sup> · E = AGB·0.47·<sup>44</sup>⁄<sub>12</sub></div></div>
-    <div class="pstep"><div class="num">03 · VERIFY</div><h3>Independent consensus</h3><p>Optical, GEDI lidar and Landsat archive are fused by inverse-variance weighting. Mint only if confidence clears the gate and k-of-n oracles agree.</p><div class="eq">μ = <b>Σwᵢmᵢ</b> / Σwᵢ , wᵢ = 1/σᵢ² · V = 1 − |μ−c|/c ≥ <b>θ</b></div></div>
-    <div class="pstep"><div class="num">04 · MINT</div><h3>Fingerprinted & chained</h3><p>A geo-temporal fingerprint makes each tonne globally unique — one token per fingerprint, so double-counting can't be expressed. Retire-once, forever.</p><div class="eq">f = <b>H</b>(geohash‖date‖projectID‖k) · R ∩ A = ∅</div></div>
+    <div class="pstep"><div class="num">03 · VERIFY</div><h3>Independent consensus</h3><p>Optical, GEDI lidar and Landsat archive are fused by <span class="tip" tabindex="0" data-tip="Inverse-variance weighting: combine estimates by trusting the most precise ones most (weight = 1/variance). The result is the fused value μ.">inverse-variance weighting</span>. Mint only if confidence clears the gate and k-of-n oracles agree.</p><div class="eq">μ = <b>Σwᵢmᵢ</b> / Σwᵢ , wᵢ = 1/σᵢ² · V = 1 − |μ−c|/c ≥ <b>θ</b></div></div>
+    <div class="pstep"><div class="num">04 · MINT</div><h3>Fingerprinted & chained</h3><p>A geo-temporal <span class="tip" tabindex="0" data-tip="Fingerprint: a unique hash of place (geohash) + date + project. One token per fingerprint, so the same tonne can never be minted twice.">fingerprint</span> makes each tonne globally unique — one token per fingerprint, so double-counting can't be expressed. Retire-once, forever.</p><div class="eq">f = <b>H</b>(geohash‖date‖projectID‖k) · R ∩ A = ∅</div></div>
   </div>
 </div></section>
 
@@ -515,9 +570,9 @@
 <section id="evidence"><div class="wrap">
   <div class="sec-head"><span class="eyebrow">Built on the literature</span><h2>Evidence & methods</h2><p>Every claim on this page is traceable to peer-reviewed science or an open standard.</p></div>
   <div class="refs">
-    <div class="ref"><span class="mark">[1]</span><div><p><b>West, T. et al. (2023).</b> Action needed to make carbon offsets from forest conservation work for climate change mitigation. <i>Science.</i> — Only ~6% of 89M credits backed by real carbon.</p><div class="doi">doi:10.1126/science.ade3535</div></div></div>
-    <div class="ref"><span class="mark">[2]</span><div><p><b>Tang, F. et al. (2025).</b> Carbon integrity of REDD+ projects. <i>Science.</i> — 19% of 52 projects met their emission-reduction targets.</p><div class="doi">doi:10.1126/science.adw4094</div></div></div>
-    <div class="ref"><span class="mark">[3]</span><div><p><b>Chave, J. et al. (2014).</b> Improved pantropical allometric models to estimate aboveground biomass. <i>Global Change Biology.</i> — The AGB equation in stage 2.</p><div class="doi">doi:10.1111/gcb.12629</div></div></div>
+    <div class="ref"><span class="mark">[1]</span><div><p><b>West, T. et al. (2023).</b> Action needed to make carbon offsets from forest conservation work for climate change mitigation. <i>Science.</i> — Only ~6% of 89M credits backed by real carbon.</p><div class="doi"><a href="https://doi.org/10.1126/science.ade3535" target="_blank" rel="noopener">doi:10.1126/science.ade3535 ↗</a></div></div></div>
+    <div class="ref"><span class="mark">[2]</span><div><p><b>Tang, F. et al. (2025).</b> Carbon integrity of REDD+ projects. <i>Science.</i> — 19% of 52 projects met their emission-reduction targets.</p><div class="doi"><a href="https://doi.org/10.1126/science.adw4094" target="_blank" rel="noopener">doi:10.1126/science.adw4094 ↗</a></div></div></div>
+    <div class="ref"><span class="mark">[3]</span><div><p><b>Chave, J. et al. (2014).</b> Improved pantropical allometric models to estimate aboveground biomass. <i>Global Change Biology.</i> — The AGB equation in stage 2.</p><div class="doi"><a href="https://doi.org/10.1111/gcb.12629" target="_blank" rel="noopener">doi:10.1111/gcb.12629 ↗</a></div></div></div>
     <div class="ref"><span class="mark">[4]</span><div><p><b>Data sources.</b> Sentinel-2 L2A via Microsoft Planetary Computer (open STAC, no key); NASA GEDI spaceborne lidar; Landsat archive. IPCC carbon fraction CF = 0.47.</p><div class="doi">planetarycomputer.microsoft.com · earthdata.nasa.gov/sensors/gedi</div></div></div>
   </div>
 </div></section>
@@ -769,14 +824,16 @@ async function loadLive(p){const box=$('#livebox'),head=$('#liveHead'),list=$('#
   btn.onclick=()=>{const eff=root.getAttribute('data-theme')||(sysDark()?'dark':'light');const next=eff==='dark'?'light':'dark';
     root.setAttribute('data-theme',next);try{localStorage.setItem('ct-theme',next);}catch(e){}};})();
 
-// ===== intro: plays the rendered 3D opener on every load, then reveals site =====
+// ===== intro: 3D opener once per session (desktop); replay anytime; skipped on phones =====
 function runIntro(force){
   const ov=$('#intro'), vid=$('#introVid'); if(!ov||!vid) return;
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if(reduce && !force){ ov.classList.add('gone'); return; }
+  const small=innerWidth<=640 || matchMedia('(pointer:coarse)').matches;
+  let seen=false; try{seen=sessionStorage.getItem('ct-intro')==='1';}catch(e){}
+  if(!force && (reduce || seen || small)){ ov.classList.add('gone'); return; }
   let ended=false;
-  function finish(){ if(ended) return; ended=true; ov.classList.add('gone');
-    setTimeout(()=>{ try{vid.pause();}catch(e){} }, 950); }
+  function finish(){ if(ended) return; ended=true; try{sessionStorage.setItem('ct-intro','1');}catch(e){}
+    ov.classList.add('gone'); setTimeout(()=>{ try{vid.pause();}catch(e){} }, 950); }
   ov.classList.remove('gone');
   try{ vid.muted=true; vid.currentTime=0; }catch(e){}
   const pr=vid.play(); if(pr&&pr.catch) pr.catch(()=>{});   // if autoplay blocked, poster shows
@@ -833,5 +890,36 @@ function runIntro(force){
     btn.addEventListener('mousemove',e=>{const r=btn.getBoundingClientRect();const x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;btn.style.transform=`translate(${x*0.25}px,${y*0.35}px)`;});
     btn.addEventListener('mouseleave',()=>{btn.style.transform='';});
   });
+})();
+
+// ===== usability: guided tour · onboarding hint · tooltips · replay =====
+(function usability(){
+  const hint=document.getElementById('plotHint');
+  // dismiss the "start here" hint once the user picks a plot
+  const plots=document.getElementById('plots');
+  if(plots) plots.addEventListener('click',()=>{ if(hint) hint.classList.add('gone'); },{once:true});
+  // guided tour — auto-drives one honest mint so people see it work
+  async function guidedTour(){
+    if(typeof busy!=='undefined' && busy) return;
+    if(hint) hint.classList.add('gone');
+    const demo=document.getElementById('demo'); if(demo) demo.scrollIntoView({behavior:'smooth',block:'start'});
+    await sleep(500);
+    selectPlot(0);
+    const sl=document.getElementById('claimSlider');
+    sl.value=Math.round(PLOTS[0].model.additional_tco2e); onClaim();
+    await sleep(850);
+    await submit();                       // runs the full oracle→registry→chain sequence + mint
+    await sleep(400);
+    if(typeof toast==='function') toast('ok','✓','That’s one Verified Climate Claim',
+      'Now you try','drag the claim up to over-claim — watch it get rejected',
+      'Or','pick the “EcoMax” project to see weak evidence caught','Then','transfer & retire it in the registry');
+  }
+  const tour=document.getElementById('bTour'); if(tour) tour.onclick=guidedTour;
+  const jIntro=document.getElementById('jIntro'); if(jIntro) jIntro.onclick=e=>{e.preventDefault(); if(typeof runIntro==='function') runIntro(true);};
+  // tooltips: tap-to-toggle on touch / click
+  document.querySelectorAll('.tip').forEach(t=>t.addEventListener('click',e=>{
+    e.stopPropagation(); document.querySelectorAll('.tip.open').forEach(o=>{ if(o!==t) o.classList.remove('open'); }); t.classList.toggle('open');
+  }));
+  document.addEventListener('click',()=>document.querySelectorAll('.tip.open').forEach(o=>o.classList.remove('open')));
 })();
 </script>
