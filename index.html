@@ -769,23 +769,21 @@ async function loadLive(p){const box=$('#livebox'),head=$('#liveHead'),list=$('#
   btn.onclick=()=>{const eff=root.getAttribute('data-theme')||(sysDark()?'dark':'light');const next=eff==='dark'?'light':'dark';
     root.setAttribute('data-theme',next);try{localStorage.setItem('ct-theme',next);}catch(e){}};})();
 
-// ===== intro: plays the rendered 3D opener once, then reveals the site =====
+// ===== intro: plays the rendered 3D opener on every load, then reveals site =====
 function runIntro(force){
   const ov=$('#intro'), vid=$('#introVid'); if(!ov||!vid) return;
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let seen=false; try{seen=localStorage.getItem('ct-introseen')==='1';}catch(e){}
-  if(!force && (reduce||seen)){ ov.classList.add('gone'); return; }
-  let ended=false, tmr;
-  function finish(){ if(ended) return; ended=true;
-    try{localStorage.setItem('ct-introseen','1');}catch(e){}
-    clearTimeout(tmr); ov.classList.add('gone');
+  if(reduce && !force){ ov.classList.add('gone'); return; }
+  let ended=false;
+  function finish(){ if(ended) return; ended=true; ov.classList.add('gone');
     setTimeout(()=>{ try{vid.pause();}catch(e){} }, 950); }
   ov.classList.remove('gone');
-  try{ vid.currentTime=0; }catch(e){}
-  const pr=vid.play(); if(pr&&pr.catch) pr.catch(()=>{});
+  try{ vid.muted=true; vid.currentTime=0; }catch(e){}
+  const pr=vid.play(); if(pr&&pr.catch) pr.catch(()=>{});   // if autoplay blocked, poster shows
   vid.onended=finish; vid.onerror=finish;
+  vid.onclick=()=>{ try{vid.play();}catch(e){} };           // tap to start if blocked
   $('#introSkip').onclick=finish;
-  tmr=setTimeout(finish, 9000);   // safety if autoplay is blocked
+  setTimeout(finish, 6500);                                 // safety fallback (video is ~5s)
 }
 
 // ===== boot =====
