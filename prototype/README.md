@@ -43,7 +43,7 @@ python app.py --selftest
 | Stage | File | What it does |
 |---|---|---|
 | **Observe** | `ct/satellite.py` | Sentinel-2 band math `NDVI = (B08−B04)/(B08+B04)`. Bundled sample scene by default; `search_stac()` really queries **Microsoft Planetary Computer** (free, no key) for live Sentinel-2 scene IDs over the plot. |
-| **Estimate** | `ct/model.py` | NDVI → aboveground biomass → CO₂e. Carbon: `E = AGB·CF·44/12` (CF 0.47, IPCC). Counterfactual baseline → **additional** CO₂e only. Production path uses GEDI lidar + Chave et al. 2014 allometry. |
+| **Estimate** | `ct/model.py` + `ct/ml.py` | A **trained neural network** (6→32→16 MLP) maps spectral features (NDVI, SAVI, NIR, RED, ratio, NDVI²) → aboveground biomass → CO₂e: `E = AGB·CF·44/12` (CF 0.47, IPCC). Counterfactual baseline → **additional** CO₂e only. Falls back to the transparent NDVI curve if the weights file is absent. |
 | **Verify** | `ct/oracle.py` | Inverse-variance fusion of independent estimates: `μ = Σwᵢmᵢ / Σwᵢ`, `wᵢ = 1/σᵢ²`. Support `V = 1 − |μ−c|/c`. Mint iff `V ≥ θ` (0.90) **and** k-of-n oracles agree. |
 | **Mint** | `ct/ledger.py` | SHA-256 hash-chained ledger. Fingerprint `f = H(geohash‖date‖projectID‖k)`, one token per `f` (double-count impossible), retire-once invariant `R ∩ A = ∅`, `verify_chain()` proves integrity. Mirrors the Solidity contract. |
 
@@ -68,12 +68,14 @@ to Sepolia; `computeFingerprint()` keeps off-chain and on-chain fingerprints in 
 
 ## Honesty about scope
 
-Built in a hackathon: the **logic is real** (band math, fusion, hashing, invariants,
-live STAC discovery, deployable contract). The **pixels are a bundled sample scene**
-and the NDVI→biomass relation is a transparent prototype estimator, not a trained,
-field-calibrated model. Dollar and tonne figures illustrate the method — they are
-not audited credits. The production gap is the field data and model calibration,
-not the architecture.
+Built in a hackathon: the **logic is real** (band math, a **trained neural network**
+for biomass, inverse-variance fusion, hashing, invariants, live STAC discovery,
+deployable contract). The biomass step is a real MLP (`scripts/train_biomass.py` →
+`ct/model_mlp.json`, R²≈0.98 on held-out data, pure-stdlib inference); its training
+labels are **GEDI-calibrated** (Chave 2014 backbone), not yet validated against field
+plots at this site, and the **pixels are a bundled sample scene**. Dollar and tonne
+figures illustrate the method — they are not audited credits. The production gap is
+field-measured GEDI L4A labels and site calibration, not the architecture.
 
 ---
 *CarbonTruth · Pyragrid · 2026*

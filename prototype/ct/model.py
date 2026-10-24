@@ -17,6 +17,8 @@ Carbon accounting (IPCC):
 
 import hashlib
 
+from . import ml
+
 MODEL_VERSION = "ndvi-agb-proxy@0.1.0"
 CF = 0.47                      # IPCC carbon fraction of dry biomass
 CO2_PER_C = 44.0 / 12.0       # 3.667
@@ -40,14 +42,24 @@ def co2e_per_ha(mean_agb):
 
 
 def estimate_stock(scene):
-    """Full carbon stock readout for one dated scene."""
-    agb_grid, mean_agb = agb_from_ndvi(scene["ndvi"])
+    """
+    Full carbon stock readout for one dated scene. Uses the trained neural
+    network (ct/ml.py) when its weights are present and the scene carries the
+    RED/NIR bands; otherwise falls back to the transparent NDVI curve.
+    """
+    if ml.available() and scene.get("red") and scene.get("nir"):
+        agb_grid, mean_agb = ml.predict_agb_grid(scene["red"], scene["nir"])
+        estimator = ml.version()
+    else:
+        agb_grid, mean_agb = agb_from_ndvi(scene["ndvi"])
+        estimator = MODEL_VERSION
     return {
         "date": scene["date"],
         "scene_id": scene["scene_id"],
         "mean_agb_t_ha": round(mean_agb, 2),
         "co2e_t_ha": round(co2e_per_ha(mean_agb), 2),
         "agb_grid": agb_grid,
+        "estimator": estimator,
     }
 
 
@@ -83,7 +95,7 @@ def change_and_additionality(before, after, hectares, baseline_rate=-0.6):
         "project_total_tco2e": round(project_total, 1),
         "baseline_total_tco2e": round(baseline_total, 1),
         "additional_tco2e": round(additional_total, 1),   # the claim we verify
-        "model_version": MODEL_VERSION,
+        "model_version": a.get("estimator", MODEL_VERSION),
     }
 
 
