@@ -391,8 +391,9 @@
     <p class="lede">CarbonTruth is the <b>SSL certificate for climate data</b> — a verification layer beneath the
       blockchain that turns raw satellite imagery into unforgeable, retire-once carbon credits. Not another marketplace. The trust the market is missing.</p>
     <div class="cta">
-      <a class="btn primary" href="#demo">▶ Run the whole lifecycle yourself</a>
-      <a class="btn ghost" href="#evidence">See the evidence</a>
+      <button class="btn primary" id="bTourHero">▶ Watch the 20-sec demo</button>
+      <a class="btn ghost" href="#demo">Try it yourself</a>
+      <a class="btn ghost" href="#evidence">Evidence</a>
       <button class="replay" id="replayIntro">↺ replay intro</button>
     </div>
     <div class="trust"><div><b>3</b><span>independent oracles</span></div><div><b>4</b><span>tracks, one primitive</span></div><div><b>0</b><span>double-counts possible</span></div></div>
@@ -915,6 +916,7 @@ function runIntro(force){
       'Or','pick the “EcoMax” project to see weak evidence caught','Then','transfer & retire it in the registry');
   }
   const tour=document.getElementById('bTour'); if(tour) tour.onclick=guidedTour;
+  const tourHero=document.getElementById('bTourHero'); if(tourHero) tourHero.onclick=guidedTour;
   const jIntro=document.getElementById('jIntro'); if(jIntro) jIntro.onclick=e=>{e.preventDefault(); if(typeof runIntro==='function') runIntro(true);};
   // tooltips: tap-to-toggle on touch / click
   document.querySelectorAll('.tip').forEach(t=>t.addEventListener('click',e=>{
