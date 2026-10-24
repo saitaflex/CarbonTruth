@@ -42,16 +42,12 @@
   .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:500}
   .muted{color:var(--muted)} .mono{font-family:var(--mono)}
 
-  #intro{position:fixed;inset:0;z-index:200;display:grid;place-items:center;
-    background:radial-gradient(900px 600px at 70% 12%,color-mix(in srgb,var(--accent) 13%,transparent),transparent 60%),var(--bg);transition:opacity .75s ease}
+  #intro{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:#06100c;transition:opacity .9s ease}
   #intro.gone{opacity:0;pointer-events:none}
-  #introCanvas{width:min(92vw,620px);height:auto;display:block}
-  #introCap{position:absolute;left:0;right:0;bottom:15%;text-align:center;padding-inline:22px;font-family:var(--disp);
-    font-weight:800;letter-spacing:-.01em;color:var(--fg);font-size:clamp(1.15rem,3.3vw,1.85rem);opacity:0;transition:opacity .45s ease;text-wrap:balance}
-  #introCap.on{opacity:1}
+  #introVid{width:100%;height:100%;object-fit:contain;background:#06100c;display:block}
   #introSkip{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:20px;font-family:var(--mono);font-size:.76rem;
-    color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:8px 14px;border-radius:10px;cursor:pointer}
-  #introSkip:hover{color:var(--fg);border-color:var(--border-2)}
+    color:#9fb8ad;background:rgba(10,20,16,.7);border:1px solid rgba(255,255,255,.14);padding:8px 14px;border-radius:10px;cursor:pointer;backdrop-filter:blur(6px)}
+  #introSkip:hover{color:#fff;border-color:rgba(255,255,255,.3)}
 
   header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;backdrop-filter:blur(14px);
     background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--border)}
@@ -288,8 +284,9 @@
 </style>
 
 <div id="intro">
-  <canvas id="introCanvas" width="620" height="420" aria-hidden="true"></canvas>
-  <div id="introCap"></div>
+  <video id="introVid" muted playsinline autoplay preload="auto" poster="intro-poster.jpg">
+    <source src="intro.mp4" type="video/mp4">
+  </video>
   <button id="introSkip">skip intro ✕</button>
 </div>
 
@@ -727,42 +724,24 @@ async function loadLive(p){const box=$('#livebox'),head=$('#liveHead'),list=$('#
   btn.onclick=()=>{const eff=root.getAttribute('data-theme')||(sysDark()?'dark':'light');const next=eff==='dark'?'light':'dark';
     root.setAttribute('data-theme',next);try{localStorage.setItem('ct-theme',next);}catch(e){}};})();
 
-// ===== intro animation (shape-morph + springs) =====
-function runIntro(force){const ov=$('#intro');if(!ov)return;
-  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;let seen=false;try{seen=localStorage.getItem('ct-introseen')==='1';}catch(e){}
-  if(!force&&(reduce||seen)){ov.classList.add('gone');setTimeout(()=>ov.remove(),10);return;}
-  ov.classList.remove('gone');const cv=$('#introCanvas'),ctx=cv.getContext('2d'),cap=$('#introCap');
-  const W=620,H=420,DPR=Math.min(2,devicePixelRatio||1);cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
-  const cx=W/2,cy=H/2-18,N=12,cell=19,gap=3,span=N*(cell+gap)-gap,gx0=cx-span/2,gy0=cy-span/2;
-  const px=[];for(let y=0;y<N;y++)for(let xx=0;xx<N;xx++){const d=Math.hypot(xx-5.5,y-6)/6.2;const ndvi=0.86-clamp(1-d)*0.56;px.push({ndvi,bx:gx0+xx*(cell+gap),by:gy0+y*(cell+gap)});}
-  const caps=[[0.3,"Satellites watch the forest"],[2.1,"AI turns pixels into tonnes of CO₂"],[3.6,"Three independent oracles must agree"],[5.2,"Verified once. Trusted everywhere."]];
-  function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-  let start=null,raf,cc='';function setCap(t){let c='';for(const[tt,txt]of caps)if(t>=tt)c=txt;if(c!==cc){cc=c;cap.classList.remove('on');cap.textContent=c;requestAnimationFrame(()=>cap.classList.add('on'));}}
-  function done(){try{localStorage.setItem('ct-introseen','1');}catch(e){}cancelAnimationFrame(raf);ov.classList.add('gone');setTimeout(()=>{if(ov&&ov.parentNode)ov.remove();},800);}
-  $('#introSkip').onclick=done;
-  function frame(ts){try{if(start==null)start=ts;const t=(ts-start)/1000;ctx.clearRect(0,0,W,H);setCap(t);
-    const accent=cssvar('--accent'),gate=cssvar('--gate'),good=cssvar('--good'),fgd=cssvar('--fg-dim'),bg=cssvar('--bg');
-    const gather=EZ.o3(seg(t,1.7,2.4));
-    for(let i=0;i<px.length;i++){const p=px[i];const rv=clamp(seg(t,0,0.9)*1.5-(i/px.length)*0.5);if(rv<=0)continue;
-      const X=lerp(p.bx,cx-cell/2,gather),Y=lerp(p.by,cy-cell/2,gather);ctx.globalAlpha=rv*(1-gather*0.95);ctx.fillStyle=ndviColor(p.ndvi);
-      const s=cell*(1-gather*0.6)*(0.55+0.45*EZ.back(rv));ctx.fillRect(X+(cell-s)/2,Y+(cell-s)/2,s,s);}ctx.globalAlpha=1;
-    if(t<1.7){const sy=gy0+seg(t,0.2,1.5)*span;ctx.globalAlpha=0.55;ctx.strokeStyle=accent;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(gx0-8,sy);ctx.lineTo(gx0+span+8,sy);ctx.stroke();ctx.globalAlpha=1;}
-    const nIn=seg(t,2.05,2.5),nOut=seg(t,3.25,3.55);
-    if(nIn>0&&nOut<1){const sc=0.7+0.3*EZ.back(nIn),a=nIn*(1-nOut);ctx.globalAlpha=a;ctx.fillStyle=accent;ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.font=`800 ${46*sc}px Syne,system-ui,sans-serif`;const val=Math.round(4096*EZ.o3(seg(t,2.05,3.0)));ctx.fillText(val.toLocaleString()+' tCO₂e',cx,cy+6);ctx.globalAlpha=1;}
-    if(t>=3.35&&t<4.95){const conv=springEase(Math.max(0,t-3.55),SPRING.snappy.k,SPRING.snappy.d);
-      const appear=seg(t,3.35,3.65),out=seg(t,4.75,4.95),spread=98,ang=[-2.5,-0.2,2.0],col=[gate,accent,gate];
-      for(let i=0;i<3;i++){const r=spread*(1-conv);const X=cx+Math.cos(ang[i])*r,Y=cy+6+Math.sin(ang[i])*r;
-        ctx.globalAlpha=appear*(1-out);ctx.fillStyle=col[i];ctx.beginPath();ctx.arc(X,Y,10,0,7);ctx.fill();
-        if(conv>0.2){ctx.globalAlpha=appear*(1-out)*0.3;ctx.strokeStyle=col[i];ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(X,Y);ctx.lineTo(cx,cy+6);ctx.stroke();}}ctx.globalAlpha=1;}
-    const lockIn=seg(t,4.7,5.05);
-    if(lockIn>0){const a=lockIn,bw=78,bh=60,bx=cx-bw/2,by=cy+2;const snap=t>=5.25?springEase(t-5.25,SPRING.snappy.k,SPRING.snappy.d):0;const lift=20*(1-snap);
-      ctx.globalAlpha=a;ctx.lineWidth=12;ctx.lineCap='round';ctx.strokeStyle=t>=5.3?good:fgd;
-      ctx.beginPath();ctx.arc(cx,by-lift,21,Math.PI,0,false);ctx.moveTo(cx-21,by-lift);ctx.lineTo(cx-21,by);ctx.moveTo(cx+21,by-lift);ctx.lineTo(cx+21,by);ctx.stroke();
-      ctx.fillStyle=t>=5.3?good:cssvar('--raised');rr(bx,by,bw,bh,11);ctx.fill();ctx.fillStyle=bg;ctx.beginPath();ctx.arc(cx,by+26,7,0,7);ctx.fill();ctx.fillRect(cx-2.5,by+28,5,15);ctx.globalAlpha=1;
-      if(t>=5.25){const pp=seg(t,5.25,5.95);ctx.globalAlpha=(1-pp)*0.6;ctx.strokeStyle=good;ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy+24,34+pp*90,0,7);ctx.stroke();ctx.globalAlpha=1;}}
-    if(t>6.4)return done();raf=requestAnimationFrame(frame);}catch(e){done();}}
-  raf=requestAnimationFrame(frame);}
+// ===== intro: plays the rendered 3D opener once, then reveals the site =====
+function runIntro(force){
+  const ov=$('#intro'), vid=$('#introVid'); if(!ov||!vid) return;
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let seen=false; try{seen=localStorage.getItem('ct-introseen')==='1';}catch(e){}
+  if(!force && (reduce||seen)){ ov.classList.add('gone'); return; }
+  let ended=false, tmr;
+  function finish(){ if(ended) return; ended=true;
+    try{localStorage.setItem('ct-introseen','1');}catch(e){}
+    clearTimeout(tmr); ov.classList.add('gone');
+    setTimeout(()=>{ try{vid.pause();}catch(e){} }, 950); }
+  ov.classList.remove('gone');
+  try{ vid.currentTime=0; }catch(e){}
+  const pr=vid.play(); if(pr&&pr.catch) pr.catch(()=>{});
+  vid.onended=finish; vid.onerror=finish;
+  $('#introSkip').onclick=finish;
+  tmr=setTimeout(finish, 9000);   // safety if autoplay is blocked
+}
 
 // ===== boot =====
 (async function(){
