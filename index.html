@@ -280,7 +280,41 @@
     .demo-body{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.plots{grid-template-columns:1fr}}
   @media (max-width:560px){.stats,.cards3,.pipe,.tracks,.market{grid-template-columns:1fr}
     .step-row{grid-template-columns:repeat(2,1fr)}.step:nth-child(2){border-right:0}.trust{gap:16px}}
-  @media (prefers-reduced-motion:reduce){.cert::before{animation:none}*{transition-duration:.01ms!important}}
+  /* ===== premium motion layer ===== */
+  html{scroll-behavior:smooth}
+  section[id]{scroll-margin-top:76px}
+  .grain{position:fixed;inset:0;z-index:150;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .cursor-dot,.cursor-ring{position:fixed;left:0;top:0;z-index:300;pointer-events:none;border-radius:50%;transform:translate(-50%,-50%);mix-blend-mode:difference;will-change:transform}
+  .cursor-dot{width:7px;height:7px;background:#fff}
+  .cursor-ring{width:34px;height:34px;border:1.5px solid rgba(255,255,255,.55);transition:width .2s ease,height .2s ease,background .2s,border-color .2s,opacity .25s}
+  .cursor-ring.hot{width:60px;height:60px;background:rgba(255,255,255,.1);border-color:transparent}
+  .cursor-dot.hide,.cursor-ring.hide{opacity:0}
+  @media (hover:none),(pointer:coarse){.cursor-dot,.cursor-ring{display:none!important}}
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity 1s cubic-bezier(.19,.7,.2,1),transform 1s cubic-bezier(.19,.7,.2,1)}
+  .reveal.r-right{transform:translateX(36px)}
+  .reveal.in{opacity:1;transform:none}
+  .herofx{position:absolute;inset:-25%;z-index:-1;pointer-events:none;opacity:.7;
+    background:radial-gradient(38% 40% at 30% 32%,color-mix(in srgb,var(--accent) 30%,transparent),transparent 60%),
+      radial-gradient(36% 38% at 73% 40%,color-mix(in srgb,var(--gate) 24%,transparent),transparent 60%),
+      radial-gradient(32% 34% at 56% 80%,color-mix(in srgb,var(--accent) 18%,transparent),transparent 62%);
+    filter:blur(48px) saturate(125%);animation:drift 24s ease-in-out infinite}
+  @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(3%,-2.5%) scale(1.07)}66%{transform:translate(-3%,2%) scale(1.04)}}
+  .marquee{overflow:hidden;border-block:1px solid var(--border);background:var(--surface-2)}
+  .marquee .mtrack{display:flex;gap:46px;white-space:nowrap;width:max-content;padding-block:20px;
+    font-family:var(--disp);font-weight:800;font-size:clamp(1.05rem,2.3vw,1.75rem);letter-spacing:-.01em;
+    animation:scrollx 32s linear infinite}
+  .marquee:hover .mtrack{animation-play-state:paused}
+  .marquee .mtrack span{display:inline-flex;align-items:center;gap:46px;color:var(--fg)}
+  .marquee .s{color:var(--accent);font-style:normal;font-size:.78em}
+  @keyframes scrollx{to{transform:translateX(-50%)}}
+  .btn.primary{will-change:transform}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .cert::before,.herofx,.marquee .mtrack{animation:none}
+    .reveal{opacity:1;transform:none;transition:none}
+    *{transition-duration:.01ms!important}
+  }
 </style>
 
 <div id="intro">
@@ -290,6 +324,10 @@
   <button id="introSkip">skip intro ✕</button>
 </div>
 
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor-ring" id="cRing" aria-hidden="true"></div>
+<div class="cursor-dot" id="cDot" aria-hidden="true"></div>
+
 <header class="bar"><div class="wrap">
   <a class="brand" href="#top"><img src="logo.png" alt="CarbonTruth logo">Carbon<b>Truth</b></a>
   <nav class="links"><a href="#problem">Problem</a><a href="#demo">Try it</a><a href="#how">How it works</a><a href="#why">Why it wins</a><a href="#evidence">Evidence</a></nav>
@@ -297,7 +335,7 @@
 </div></header>
 
 <a id="top"></a>
-<section class="hero"><div class="wrap">
+<section class="hero"><div class="herofx" aria-hidden="true"></div><div class="wrap">
   <div>
     <img class="hero-logo" src="logo.png" alt="CarbonTruth">
     <span class="tagpill"><span class="dot"></span>Team Pyragrid · IEEE ClimateChain 2026</span>
@@ -321,6 +359,11 @@
     <div class="stamp">VERIFIED</div>
   </div>
 </div></section>
+
+<div class="marquee" aria-hidden="true"><div class="mtrack">
+  <span>VERIFIED CLIMATE CLAIMS <i class="s">◆</i> SATELLITE MRV <i class="s">◆</i> RETIRE ONCE <i class="s">◆</i> MULTI-ORACLE CONSENSUS <i class="s">◆</i> NO DOUBLE-COUNTING <i class="s">◆</i> PROOF, NOT PROMISES <i class="s">◆</i></span>
+  <span>VERIFIED CLIMATE CLAIMS <i class="s">◆</i> SATELLITE MRV <i class="s">◆</i> RETIRE ONCE <i class="s">◆</i> MULTI-ORACLE CONSENSUS <i class="s">◆</i> NO DOUBLE-COUNTING <i class="s">◆</i> PROOF, NOT PROMISES <i class="s">◆</i></span>
+</div></div>
 
 <section class="band" id="problem"><div class="wrap">
   <div class="sec-head"><span class="eyebrow">The trillion-dollar trust gap</span>
@@ -751,5 +794,42 @@ function runIntro(force){
   $('#replayIntro').onclick=()=>runIntro(true);
   await genesis();await refresh();selectPlot(0);
   runIntro(false);
+})();
+
+// ===== premium motion layer (cursor · magnetic · scroll reveals · count-up) =====
+(function premium(){
+  const touch=matchMedia('(hover:none),(pointer:coarse)').matches;
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const items=[];
+  function mark(sel){document.querySelectorAll(sel).forEach((el,i)=>{if(el.closest('#intro'))return;
+    if(el.classList.contains('reveal'))return; el.classList.add('reveal'); el.style.transitionDelay=((i%6)*0.06)+'s'; items.push(el);});}
+  ['.sec-head','.card','.stat','.pstep','.track','.mk','.ref','.demo-shell'].forEach(mark);
+  ['.hero-logo','.hero .tagpill','.hero h1','.hero .lede','.hero .cta','.hero .trust'].forEach((s,i)=>{
+    const el=document.querySelector(s); if(!el)return; el.classList.add('reveal'); el.style.transitionDelay=(0.12+i*0.09)+'s'; items.push(el);});
+  const cert=document.querySelector('.hero .cert'); if(cert){cert.classList.add('reveal','r-right'); cert.style.transitionDelay='.28s'; items.push(cert);}
+  if(reduce){ items.forEach(el=>el.classList.add('in')); }
+  else{
+    const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -7% 0px'});
+    items.forEach(el=>io.observe(el));
+    requestAnimationFrame(()=>document.querySelectorAll('.hero .reveal').forEach(el=>el.classList.add('in')));
+  }
+  document.querySelectorAll('.trust b').forEach(b=>{const to=parseInt(b.textContent,10); if(isNaN(to))return; b.textContent='0';
+    const io2=new IntersectionObserver(es=>{es.forEach(e=>{if(!e.isIntersecting)return; const s=performance.now();
+      (function tick(n){const p=Math.min(1,(n-s)/1000); b.textContent=Math.round(to*(1-Math.pow(1-p,3))); if(p<1)requestAnimationFrame(tick);})(s); io2.disconnect();});},{threshold:1});
+    io2.observe(b);});
+  if(touch||reduce) return;
+  const dot=document.getElementById('cDot'), ring=document.getElementById('cRing'); if(!dot||!ring) return;
+  let rx=innerWidth/2,ry=innerHeight/2,mx=rx,my=ry;
+  addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;});
+  (function loop(){rx+=(mx-rx)*0.2;ry+=(my-ry)*0.2;ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;requestAnimationFrame(loop);})();
+  const hot='a,button,input,select,.plotcard,.preset,.act,.retire,.tgl,.replay,[role=button]';
+  document.addEventListener('mouseover',e=>{if(e.target.closest&&e.target.closest(hot))ring.classList.add('hot');});
+  document.addEventListener('mouseout',e=>{if(e.target.closest&&e.target.closest(hot))ring.classList.remove('hot');});
+  document.documentElement.addEventListener('mouseleave',()=>{dot.classList.add('hide');ring.classList.add('hide');});
+  document.documentElement.addEventListener('mouseenter',()=>{dot.classList.remove('hide');ring.classList.remove('hide');});
+  document.querySelectorAll('.btn.primary').forEach(btn=>{
+    btn.addEventListener('mousemove',e=>{const r=btn.getBoundingClientRect();const x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;btn.style.transform=`translate(${x*0.25}px,${y*0.35}px)`;});
+    btn.addEventListener('mouseleave',()=>{btn.style.transform='';});
+  });
 })();
 </script>
