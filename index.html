@@ -136,11 +136,13 @@
   .plotcard .pm{font-family:var(--mono);font-size:.66rem;color:var(--muted);margin-top:5px}
 
   .step-row{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);background:var(--surface)}
-  .step{padding:12px 14px;text-align:center;border-right:1px solid var(--border);font-family:var(--mono);font-size:.74rem;color:var(--faint);transition:.3s;position:relative}
+  .step{padding:12px 14px;text-align:center;border-right:1px solid var(--border);font-family:var(--mono);font-size:.74rem;color:var(--faint);opacity:.45;transition:opacity .35s ease,color .35s ease,background .35s ease,transform .35s cubic-bezier(.19,.7,.2,1);position:relative}
   .step:last-child{border-right:0}.step b{display:block;font-size:.64rem;letter-spacing:.14em}
-  .step.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,transparent)}
-  .step.done{color:var(--fg-dim)}
-  .step.on::after{content:"";position:absolute;left:0;bottom:-1px;height:2px;width:100%;background:var(--accent)}
+  .step.on{color:var(--accent);opacity:1;background:color-mix(in srgb,var(--accent) 10%,transparent);transform:translateY(-2px)}
+  .step.done{color:var(--good);opacity:.9}
+  .step.done b::after{content:" ✓"}
+  .step.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--accent);animation:stepbar .5s ease both}
+  @keyframes stepbar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 
   .demo-body{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
   .pane{background:var(--surface-2);padding:20px;min-width:0}
@@ -714,6 +716,7 @@ function renderPlots(){$('#plots').innerHTML=PLOTS.map((p,i)=>`<button class="pl
   <div class="pid">${p.project_id}</div><div class="pn">${p.name}</div><div class="pm">${p.hectares} ha · μ≈${intf(fuse(p.oracles).mu)} t</div></button>`).join('');
   $$('.plotcard').forEach(b=>b.onclick=()=>selectPlot(+b.dataset.i));}
 function selectPlot(i){CUR=i;const p=plot();FUSED=fuse(p.oracles);
+  if(typeof revealDemo==='function') revealDemo();
   renderPlots();
   paintGrid($('#gridBefore'),p.before.ndvi);paintGrid($('#gridAfter'),p.after.ndvi);
   $('#dBefore').textContent=p.before.date;$('#dAfter').textContent=p.after.date;
@@ -744,6 +747,14 @@ function onClaim(){const claim=+$('#claimSlider').value,ev=evaluate(claim);lastE
 }
 
 // ===== steps =====
+// force the whole interactive panel visible — the scroll-reveal layer starts
+// it at opacity:0, and the IntersectionObserver may not have fired yet when a
+// run begins (esp. mid smooth-scroll), which left the sequence playing on an
+// invisible panel. Reveal the demo subtree the instant anything runs.
+function revealDemo(){try{
+  const sh=document.querySelector('.demo-shell'); if(sh) sh.classList.add('in');
+  document.querySelectorAll('.demo-shell, .demo-shell *').forEach(el=>el.classList.add('in'));
+}catch(e){}}
 function resetSteps(){$$('.step').forEach(s=>s.classList.remove('on','done'));$('.step[data-s="0"]').classList.add('done');}
 function stepOn(n){$$('.step').forEach(s=>{const i=+s.dataset.s;s.classList.toggle('on',i===n);if(i<n)s.classList.add('done');});}
 
@@ -753,11 +764,15 @@ function litActor(a){$$('.actor').forEach(x=>x.classList.toggle('lit',x.dataset.
 function movePulse(a,show=true){const p=$('#pulse');p.style.opacity=show?1:0;p.style.left=(AX[a]*100)+'%';}
 async function seqLine(text,bad){const log=$('#seqlog');const el=document.createElement('div');
   el.className='ln'+(bad?' bad':'');el.innerHTML=`<span class="ar">${bad?'✕':'→'}</span><span>${text}</span>`;
-  log.appendChild(el);await sleep(40);el.classList.add('on');await sleep(620);}
+  log.appendChild(el);await sleep(40);el.classList.add('on');
+  try{el.scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){}
+  await sleep(620);}
 
 async function submit(){
   if(busy||!lastEv)return;busy=true;$('#bSubmit').disabled=true;$('#toast').className='toast';
+  revealDemo();
   $('#seqlog').innerHTML='';const ev=lastEv,p=plot();
+  resetSteps();await sleep(120);
   stepOn(1);
   litActor('you');movePulse('you');await sleep(250);
   movePulse('oracle');litActor('oracle');await seqLine(`You → Oracle Network: verify claim of <b>${intf(ev.claim)} tCO₂e</b>`);
@@ -951,8 +966,9 @@ function runIntro(force){
   async function guidedTour(){
     if(typeof busy!=='undefined' && busy) return;
     if(hint) hint.classList.add('gone');
+    if(typeof revealDemo==='function') revealDemo();
     const demo=document.getElementById('demo'); if(demo) demo.scrollIntoView({behavior:'smooth',block:'start'});
-    await sleep(500);
+    await sleep(650);
     selectPlot(0);
     const sl=document.getElementById('claimSlider');
     sl.value=Math.round(PLOTS[0].model.additional_tco2e); onClaim();
