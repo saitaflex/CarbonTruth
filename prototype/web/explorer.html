@@ -185,7 +185,7 @@ async function loadRegistry(){
   ].map(x=>`<div class="stat"><div class="n">${x[1]}</div><div class="l">${x[2]}</div></div>`).join('');
   const reg=$('#registry');
   if(!d.credits.length){reg.innerHTML='<div class="empty">No claims verified yet — run a verification above.</div>';return;}
-  reg.innerHTML=`<table><thead><tr><th>VCC</th><th>tCO₂e</th><th>conf.</th><th>status</th><th>fingerprint</th><th>date</th><th></th></tr></thead><tbody>${
+  reg.innerHTML=`<table><thead><tr><th>VCC</th><th>tCO₂e</th><th>conf.</th><th>status</th><th>fingerprint</th><th>date</th><th>Hedera</th><th></th></tr></thead><tbody>${
     d.credits.map(c=>`<tr>
       <td class="mono">${c.vcc_id}</td>
       <td style="font-variant-numeric:tabular-nums">${c.tonnes.toLocaleString()}</td>
@@ -193,12 +193,18 @@ async function loadRegistry(){
       <td><span class="pill ${c.status}">${c.status}</span></td>
       <td class="mono" title="${c.fingerprint}">${c.fingerprint.slice(0,12)}…</td>
       <td class="mono">${c.date}</td>
+      <td class="mono">${hl(c.hedera)}</td>
       <td>${c.status==='active'?`<button class="danger" data-fp="${c.fingerprint}" style="padding:6px 11px">retire</button>`:''}</td>
     </tr>`).join('')}</tbody></table>`;
   reg.querySelectorAll('button[data-fp]').forEach(b=>b.onclick=async()=>{
     const r=await api('/api/retire',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fingerprint:b.dataset.fp})});
     toast(r.ok?'Credit retired — can never be re-activated':('Retire failed: '+r.error));loadRegistry();loadChain();
   });
+}
+function hl(h){
+  if(!h||!h.anchor||!h.anchor.ok)return '<span style="color:var(--faint)">—</span>';
+  const n=h.nft&&h.nft.ok?` · <a href="${h.nft.nftUrl}" target="_blank" style="color:var(--cyan)">NFT #${h.nft.serial}</a>`:'';
+  return `<a href="${h.anchor.url}" target="_blank" style="color:var(--cyan)">HCS #${h.anchor.sequence}</a>${n}`;
 }
 function setGauge(pct){
   const C=276.5,arc=$('#garc'),gm=$('#gm');let s=0;const to=pct;const t0=performance.now();
@@ -228,7 +234,8 @@ async function run(scenario,btn){
       v.innerHTML=`<div class="vt">✓ MINTED — Verified Climate Claim</div>${o.reason}
         <div class="receipt"><b>${b.vcc_id}</b> · ${b.tonnes.toLocaleString()} tCO₂e · ${b.confidence}% confidence
         <br>fingerprint <b>${b.fingerprint}</b>
-        <br>evidence hash ${b.evidence_hash.slice(0,32)}…</div>`;
+        <br>evidence hash ${b.evidence_hash.slice(0,32)}…
+        ${r.mint.hedera&&r.mint.hedera.anchor.ok?`<br>⬡ Hedera testnet: <a href="${r.mint.hedera.anchor.url}" target="_blank" style="color:var(--cyan)">HCS anchor #${r.mint.hedera.anchor.sequence}</a>${r.mint.hedera.nft.ok?` · <a href="${r.mint.hedera.nft.nftUrl}" target="_blank" style="color:var(--cyan)">NFT ${r.mint.hedera.nft.tokenId} #${r.mint.hedera.nft.serial}</a>`:''}`:''}</div>`;
       toast('VCC minted — verified once, trusted everywhere');
     }else if(o.passed && r.mint && !r.mint.ok){
       v.className='verdict no';

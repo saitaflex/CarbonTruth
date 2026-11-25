@@ -1,0 +1,2 @@
+{ "name": "carbontruth-hedera", "private": true, "type": "module", "version": "1.0.0",
+  "dependencies": { "@hashgraph/sdk": "^2.60.0" } }

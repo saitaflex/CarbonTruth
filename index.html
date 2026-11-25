@@ -622,6 +622,7 @@
     <div class="stackcell"><div class="k">NASA GEDI + Landsat</div><div class="r">Independent lidar & archive oracles for multi-source consensus.</div></div>
     <div class="stackcell"><div class="k">SHA-256</div><div class="r">Hash-chained, tamper-evident ledger with geo-temporal fingerprints.</div></div>
     <div class="stackcell"><div class="k">Solidity <em>EVM</em></div><div class="r">On-chain contract enforcing uniqueness + retire-once (<span class="mono">CarbonTruthVCC.sol</span>).</div></div>
+    <div class="stackcell"><div class="k">Hedera <em>HCS + HTS</em></div><div class="r">Every verified claim is anchored to a Hedera Consensus Service topic and minted as an HTS NFT; retiring burns it. Live on testnet: <a href="https://hashscan.io/testnet/topic/0.0.11607872" target="_blank" rel="noopener">HCS topic</a> · <a href="https://hashscan.io/testnet/token/0.0.11607873" target="_blank" rel="noopener">VCC NFTs</a>.</div></div>
     <div class="stackcell"><div class="k">Vercel</div><div class="r">Static hosting + the live <span class="mono">/api/stac</span> serverless function.</div></div>
     <div class="stackcell"><div class="k">Neural net <em>scikit-learn</em></div><div class="r">A trained MLP maps Sentinel-2 reflectance → biomass (R²≈0.98); frozen weights, pure-Python inference.</div></div>
     <div class="stackcell"><div class="k">IPCC + Chave 2014</div><div class="r">Peer-reviewed carbon accounting & allometry — transparent, cited.</div></div>
@@ -634,7 +635,7 @@
       <pre><span class="c">$</span> git clone https://github.com/&lt;you&gt;/carbontruth
 <span class="c">$</span> cd carbontruth/prototype && python app.py   <span style="color:var(--faint)"># → http://127.0.0.1:8017</span>
 <span class="c">$</span> python app.py --selftest   <span style="color:var(--faint)"># honest ✓ · duplicate ✗ · inflated ✗</span></pre></div>
-    <p class="muted" style="font-size:.88rem;margin-top:14px">Zero dependencies — standard library only. Ships with a real EVM Solidity contract enforcing the same fingerprint-uniqueness and retire-once invariants on-chain.</p></div>
+    <p class="muted" style="font-size:.88rem;margin-top:14px">Core engine has zero dependencies — standard library only (Hedera anchoring is optional and uses Node + <span class="mono">@hashgraph/sdk</span>). Ships with a real EVM Solidity contract enforcing the same fingerprint-uniqueness and retire-once invariants on-chain.</p></div>
   <div><span class="eyebrow">The team</span>
     <div class="end"><img src="logo.png" alt="CarbonTruth"><div><div style="font-family:var(--disp);font-weight:800;font-size:1.3rem">Pyragrid</div><div class="muted" style="font-size:.85rem">building CarbonTruth</div></div></div>
     <p class="muted" style="font-size:.9rem;margin-top:16px">“Every tonne — verified once, trusted everywhere.” Our entry for the IEEE ClimateChain Global Hackathon 2026, aligned to UN COP31 / Paris Article 6.4.</p>

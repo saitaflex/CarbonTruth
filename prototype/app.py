@@ -16,7 +16,7 @@ import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-from ct import satellite, model, oracle, VERSION, PRODUCT, TEAM
+from ct import satellite, model, oracle, hedera, VERSION, PRODUCT, TEAM
 from ct.ledger import Ledger
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -57,6 +57,8 @@ def run_verification(scenario="honest"):
             evidence_hash=v["evidence_hash"],
             scenes=[before["scene_id"], after["scene_id"]],
         )
+        if minted["ok"]:                      # anchor on Hedera (HCS) + mint NFT (HTS)
+            minted["hedera"] = hedera.on_mint(minted["block"])
 
     return {
         "scenario": scenario,
@@ -98,7 +100,8 @@ class Handler(BaseHTTPRequestHandler):
         if p in ("/", "/index.html"):
             return self._file("explorer.html", "text/html; charset=utf-8")
         if p == "/api/credits":
-            return self._send(200, {"stats": LED.stats(), "credits": list(reversed(LED.credits()))})
+            cr = [dict(c, hedera=hedera.record(c["fingerprint"])) for c in reversed(LED.credits())]
+            return self._send(200, {"stats": LED.stats(), "credits": cr, "hedera": hedera.enabled()})
         if p == "/api/credit":
             fp = (q.get("fp") or [""])[0]
             b = next((x for x in LED.credits() if x["fingerprint"] == fp), None)
@@ -125,7 +128,11 @@ class Handler(BaseHTTPRequestHandler):
             scenario = body.get("scenario", "honest")
             return self._send(200, run_verification(scenario))
         if u.path == "/api/retire":
-            return self._send(200, LED.retire(body.get("fingerprint", "")))
+            fp = body.get("fingerprint", "")
+            res = LED.retire(fp)
+            if res.get("ok"):
+                res["hedera"] = hedera.on_retire(fp)
+            return self._send(200, res)
         return self._send(404, {"error": "not found"})
 
     def _file(self, name, ctype):
@@ -156,6 +163,10 @@ def selftest():
             if r["mint"]["ok"]:
                 b = r["mint"]["block"]
                 print("  minted VCC      : %s  %.1f tCO2e  fp=%s..." % (b["vcc_id"], b["tonnes"], b["fingerprint"][:12]))
+                h = r["mint"].get("hedera")
+                if h:
+                    print("  hedera HCS      : %s" % (h["anchor"].get("url") or h["anchor"].get("error")))
+                    print("  hedera HTS NFT  : %s" % (h["nft"].get("nftUrl") or h["nft"].get("error")))
             else:
                 print("  mint            : BLOCKED -- %s" % r["mint"]["error"])
     ok, bad = LED.verify_chain()
@@ -180,7 +191,9 @@ def serve():
 
 
 if __name__ == "__main__":
-    if "--selftest" in sys.argv:
+    if "--hedera-setup" in sys.argv:
+        print(json.dumps(hedera.setup(), indent=2))
+    elif "--selftest" in sys.argv:
         selftest()
     else:
         serve()
